@@ -49,6 +49,8 @@ neighbours{1}       % [2 3 9 10]: antennas one and two places away in ring 1
 neighbours{21}      % [22 23 24]: every other antenna in ring 3
 ```
 
+`Distance` has no unit of its own: it is in the units of `locations`. The Galway antenna locations are in metres, so `0.09` is 90 mm. With locations in millimetres, the same neighbourhoods need `'Distance', 90`. The default distance is calculated from the locations and is therefore in their units as well.
+
 ### Two nearest antennas
 
 ```matlab
@@ -71,7 +73,7 @@ The Galway data contain no channel between rings, so channels 1-11 and 1-20 coul
 
 N x 3 numeric array
 
-x, y and z coordinates of the N antennas, for example MERIT's `antenna_locations` in metres. An N x 2 array is accepted and treated as z = 0. `Distance` has the same units.
+x, y and z coordinates of the N antennas, for example MERIT's `antenna_locations` in metres. An N x 2 array is accepted and treated as z = 0. Any length unit may be used; `Distance` must be given in the same unit.
 
 ### `channelPairs` — Tx and Rx antenna of each channel
 
@@ -89,7 +91,7 @@ MERIT's `channel_names`: row c gives the transmitting and receiving antenna of c
 
 | Name | Value | Default | Description |
 |---|---|---|---|
-| `Distance` | nonnegative scalar | 1.2 times the largest distance from an antenna to its nearest candidate | Largest distance to a neighbour, in the units of `locations`. Used by `'distance'`. |
+| `Distance` | nonnegative scalar | 1.2 times the largest distance from an antenna to its nearest candidate | Largest distance to a neighbour, in the units of `locations` (metres for MERIT's data, so `0.09` is 90 mm). Used by `'distance'`. |
 | `K` | nonnegative integer | required for `'nearest'` | Number of neighbours. If fewer candidates exist, all are taken. |
 | `Antennas` | vector of antenna numbers | all antennas | Antennas whose neighbourhoods are computed; the others receive an empty neighbourhood. |
 | `MeasuredOnly` | `true`, `false` | `true` | Consider only candidates with a measured channel (see Algorithms); `false` considers all antennas. |
