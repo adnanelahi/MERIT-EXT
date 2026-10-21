@@ -29,7 +29,10 @@ tumour = [15 0 35] * 1e-3;
 ## 2. Convert the signals to the time domain
 
 ```matlab
-timeAxis = 0:1e-11:6e-9;
+df = frequencies(2) - frequencies(1);      % 40 MHz: time span must stay below 1/df = 25 ns
+dtMax = 1 / (2 * max(frequencies));        % 111 ps: Nyquist limit
+dt = 1e-11;                                % chosen well below dtMax for accurate delays
+timeAxis = 0:dt:6e-9;
 tdScan = merit.process.fd2td(scan, frequencies, timeAxis);
 tdRotated = merit.process.fd2td(rotated, frequencies, timeAxis);
 ```
@@ -65,7 +68,6 @@ Rotating the phantom moves the tumour relative to the antennas but leaves the ar
 [points, axes_] = merit.domain.hemisphere('radius', 7e-2, 'resolution', 2.5e-3);
 delays = merit.beamform.get_delays(pairs, locations, 'relative_permittivity', 8);
 allDelays = delays(points);
-dt = timeAxis(2) - timeAxis(1);
 windowLength = numel(timeAxis) - ceil(max(-allDelays(:)) / dt);
 window = merit.beamform.windows.rectangular(windowLength);
 ```
@@ -111,28 +113,57 @@ smrRotation = merit.metrics.SMR(imageRotation, points, axes_{:})
 
 The maximum lies 10 mm above the tumour along z, which is the direction in which the ring array resolves least, and the main response stands out from the rest of the image. Pass the grid axes to the metrics; without them the widths are counted in grid steps.
 
-## 8. Remove the artefact by average subtraction
+## 8. Define the neighbourhoods and reference channels
 
 ```matlab
 neighbours = artefact.antennaNeighbours(locations, pairs);
 references = artefact.referenceChannels(neighbours, pairs);
-averageSubtracted = artefact.subtractAverage(tdScan, references);
 c = find(pairs(:, 1) == 1 & pairs(:, 2) == 3);
+pairs(references{c}, :)
+```
+
+Average subtraction needs only the one scan. It assumes that channels between nearby antennas share the same artefact, and it subtracts from every channel the average of such channels:
+
+- [antennaNeighbours](../artefact/antennaNeighbours.md) gives every antenna the antennas within the default distance, here its two adjacent antennas in the same ring.
+- [referenceChannels](../artefact/referenceChannels.md) gives every channel its reference channels by the receiver rule: for channel 1-3, the channels from antenna 1 to the neighbours 2 and 4 of antenna 3, which the last line prints as `[1 2; 1 4]`.
+
+## 9. View and edit the neighbourhoods
+
+```matlab
+[~, editor] = artefact.neighbourhoodEditor(locations, pairs, 'InitialNeighbours', neighbours, ...
+    'ImagingDomain', points, 'DisplayCoordinateUnits', 'mm');
+```
+
+The [neighbourhood editor](../artefact/neighbourhoodEditor.md) shows the antennas around the imaging domain, with the neighbourhoods of step 8:
+
+- **See a neighbourhood.** Choose an antenna in the antenna list or click it: it turns red, and its neighbours turn blue, joined to it by lines.
+- **Change it by hand.** Press **Edit neighbours** and click other antennas to add them to or remove them from the chosen antenna's neighbourhood.
+- **Form all neighbourhoods anew.** Under Automatic neighbourhoods, choose a distance or k nearest antennas and press **Apply to all antennas**.
+- **See the effect on the references.** Choose a channel in the channel list: it is drawn in red and its reference channels in orange.
+
+The script does not wait for the editor, so the steps below use the neighbourhoods of step 8. To use edited neighbourhoods instead, replace the line above with a call that waits until **Done** is pressed, and take the reference channels from the editor:
+
+```text
+[~, editor] = artefact.neighbourhoodEditor(locations, pairs, 'InitialNeighbours', neighbours, ...
+    'ImagingDomain', points, 'DisplayCoordinateUnits', 'mm', 'Wait', true);
+references = editor.GetResult();
+```
+
+[subtractAverage](../artefact/subtractAverage.md) and the signal viewer accept this result in place of the reference channels from `referenceChannels`.
+
+## 10. Remove the artefact by average subtraction
+
+```matlab
+averageSubtracted = artefact.subtractAverage(tdScan, references);
 [~, averageViewer] = signalvis.signalViewer({tdScan, averageSubtracted, rotationSubtracted}, timeAxis, pairs, ...
     'DatasetNames', {'Scan', 'Average-subtracted', 'Rotation-subtracted'}, 'References', references, ...
     'AxisUnits', 's', 'DisplayAxisUnits', 'ns');
 averageViewer.ShowReference(c);
 ```
 
-Average subtraction needs only the one scan. It assumes that channels between nearby antennas share the same artefact:
+[subtractAverage](../artefact/subtractAverage.md) subtracts from every channel the average of its reference channels. The viewer shows channel 1-3, drawn thick, with its reference channels 1-2 and 1-4, in the scan and after both kinds of subtraction.
 
-- [antennaNeighbours](../artefact/antennaNeighbours.md) gives every antenna the antennas within the default distance, here its two adjacent antennas in the same ring.
-- [referenceChannels](../artefact/referenceChannels.md) gives every channel its reference channels by the receiver rule: for channel 1-3, the channels from antenna 1 to the neighbours 2 and 4 of antenna 3.
-- [subtractAverage](../artefact/subtractAverage.md) subtracts from every channel the average of its reference channels.
-
-The viewer shows channel 1-3, drawn thick, with its reference channels 1-2 and 1-4, in the scan and after both kinds of subtraction. To inspect or change the neighbourhoods by hand, open the [neighbourhood editor](../artefact/neighbourhoodEditor.md) with `artefact.neighbourhoodEditor(locations, pairs, 'ImagingDomain', points, 'DisplayCoordinateUnits', 'mm')` and pass `editor.GetResult()` to `subtractAverage` in place of `references`.
-
-## 9. Image and evaluate the average-subtracted signals
+## 11. Image and evaluate the average-subtracted signals
 
 ```matlab
 imageAverage = merit.beamform(averageSubtracted, timeAxis, points, delays, ...
@@ -156,7 +187,7 @@ smrAverage = merit.metrics.SMR(imageAverage, points, axes_{:})
 
 The slice is taken in the same plane as the rotation-subtracted slice, so that the two figures can be compared directly.
 
-## 10. Compare the two results
+## 12. Compare the two results
 
 ```matlab
 similarity = corrcoef(imageAverage, imageRotation);
@@ -178,13 +209,13 @@ comparison = table([errorRotation; errorAverage], [scrRotation; scrAverage], [sm
 | SMR | 10.9 dB | 7.85 dB |
 | Correlation with the rotation-subtracted image | 1 | −0.12 |
 
-With the default neighbourhoods, average subtraction does not reproduce the rotation-subtracted image on these data. The maximum lies near the antennas, far from the tumour, and the image is unrelated to the reference. The signal viewer of step 8 shows the reason: the average-subtracted signals are not smaller than the scan. The reference channels 1-2 and 1-4 of channel 1-3 connect antennas at different separations from those of 1-3, so their artefacts differ in delay and shape, and subtracting their average adds as much as it removes.
+With the default neighbourhoods, average subtraction does not reproduce the rotation-subtracted image on these data. The maximum lies near the antennas, far from the tumour, and the image is unrelated to the reference. The signal viewer of step 10 shows the reason: the average-subtracted signals are not smaller than the scan. The reference channels 1-2 and 1-4 of channel 1-3 connect antennas at different separations from those of 1-3, so their artefacts differ in delay and shape, and subtracting their average adds as much as it removes.
 
-Average subtraction can be improved by choosing reference channels whose artefact matches better. Try other neighbourhoods, for example `artefact.antennaNeighbours(locations, pairs, 'Distance', 0.09)`, the transmitter rule (`'Rule', 'transmitter'` in `referenceChannels`), or neighbourhoods edited by hand in the neighbourhood editor, and compare each result with the rotation-subtracted image by rerunning steps 8 to 10.
+Average subtraction can be improved by choosing reference channels whose artefact matches better. Try other neighbourhoods, for example `artefact.antennaNeighbours(locations, pairs, 'Distance', 0.09)`, the transmitter rule (`'Rule', 'transmitter'` in `referenceChannels`), or neighbourhoods edited by hand in the neighbourhood editor of step 9, and compare each result with the rotation-subtracted image by rerunning steps 8 to 12.
 
 ## Run the complete script
 
-With all ten blocks added in order, save the script and run it, for example with `run('myPipeline.m')`. It opens three signal viewers and two image figures and prints the metrics and the comparison table. To try another neighbourhood or reference rule, change step 8 and run the script again.
+With all twelve blocks added in order, save the script and run it, for example with `run('myPipeline.m')`. It opens three signal viewers, the neighbourhood editor and two image figures, and prints the metrics and the comparison table. To try another neighbourhood or reference rule, change step 8, or edit the neighbourhoods as described in step 9, and run the script again.
 
 ## See Also
 
