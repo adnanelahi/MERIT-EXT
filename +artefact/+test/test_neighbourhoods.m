@@ -223,15 +223,53 @@ classdef test_neighbourhoods < matlab.unittest.TestCase
             testCase.verifyTrue(strcmp(get(e.DomainSurface, 'HitTest'), 'off'), 'The surface does not take clicks.');
             vertices = get(e.DomainSurface, 'Vertices');
             testCase.verifyTrue(all(ismember(vertices, points, 'rows')), 'The surface vertices are imaging points.');
+            testCase.verifyEqual(get(e.DomainSurface, 'FaceAlpha'), 0.25, 'Default opacity.');
+            tags = get(e.DomainLines, 'Tag');
+            testCase.verifyEqual([sum(strcmp(tags, 'rim')) sum(strcmp(tags, 'antenna height')) sum(strcmp(tags, 'between'))], [1 3 3], ...
+                'The rim, a cross-section at each of the three ring heights and three between them.');
+            ringLines = e.DomainLines(strcmp(tags, 'antenna height'));
+            heights = cellfun(@(z) z(1), get(ringLines, 'ZData'));
+            testCase.verifyEqual(sort(heights(:))', unique(locations(:, 3))', 'AbsTol', 1e-12, 'Cross-sections lie at the ring heights.');
+            betweenLines = e.DomainLines(strcmp(tags, 'between'));
+            middles = cellfun(@(z) z(1), get(betweenLines, 'ZData'));
+            levels = [0; unique(locations(:, 3))];
+            testCase.verifyEqual(sort(middles(:))', ((levels(1:end-1) + levels(2:end)) / 2)', 'AbsTol', 1e-12, ...
+                'Further cross-sections lie midway between the rim and the ring heights.');
+            e.SetDomainOpacity(0.6);
+            testCase.verifyEqual([get(e.DomainSurface, 'FaceAlpha') get(e.OpacitySlider, 'Value')], [0.6 0.6], 'SetDomainOpacity updates the surface and slider.');
+            set(e.OpacitySlider, 'Value', 0.3); callback = get(e.OpacitySlider, 'Callback'); callback(e.OpacitySlider, []);
+            testCase.verifyEqual(get(e.DomainSurface, 'FaceAlpha'), 0.3, 'The opacity slider sets the opacity.');
+            set(e.AzimuthSlider, 'Value', 45); set(e.ElevationSlider, 'Value', 10);
+            callback = get(e.AzimuthSlider, 'Callback'); callback(e.AzimuthSlider, []);
+            testCase.verifyEqual(get(e.Axes, 'View'), [45 10], 'AbsTol', 1e-9, 'The angle sliders set the view.');
+            e.SetView(-120, 60);
+            testCase.verifyEqual([get(e.AzimuthSlider, 'Value') get(e.ElevationSlider, 'Value')], [-120 60], 'AbsTol', 1e-9, 'SetView updates the sliders.');
+            testCase.verifyError(@() e.SetView(0, 100), 'artefact:neighbourhoodEditor:ViewAngle');
+            e.SetView(-37.5, 30);
+            testCase.verifyEqual(get(e.Axes, 'View'), [-37.5 30], 'Default view.');
+            testCase.verifyNotEmpty(findall(e.Axes, 'Type', 'light'), 'The domain is lit.');
             set(e.DomainCheck, 'Value', 0); callback = get(e.DomainCheck, 'Callback'); callback(e.DomainCheck, []);
-            testCase.verifyTrue(strcmp(get(e.DomainSurface, 'Visible'), 'off'), 'The checkbox hides the surface.');
+            testCase.verifyTrue(strcmp(get(e.DomainSurface, 'Visible'), 'off') && all(strcmp(get(e.DomainLines, 'Visible'), 'off')), ...
+                'The checkbox hides the surface and its lines.');
+            delete(fig);
+            [fig, e] = artefact.neighbourhoodEditor(locations, pairs, 'ImagingDomain', points, 'DomainOpacity', 0.5, ...
+                'ViewAngle', [30 20], 'Visible', 'off');
+            testCase.verifyEqual(get(e.DomainSurface, 'FaceAlpha'), 0.5);
+            testCase.verifyEqual(get(e.Axes, 'View'), [30 20]);
+            testCase.verifyError(@() artefact.neighbourhoodEditor(locations, pairs, 'DomainOpacity', 2, 'Visible', 'off'), ...
+                'artefact:neighbourhoodEditor:DomainOpacity');
+            testCase.verifyError(@() artefact.neighbourhoodEditor(locations, pairs, 'ViewAngle', 30, 'Visible', 'off'), ...
+                'artefact:neighbourhoodEditor:ViewAngle');
             e.ChooseAntenna(5);
             testCase.verifyTrue(isequal(e.GetNeighbours(), artefact.antennaNeighbours(locations, pairs)), 'The domain does not change the neighbourhoods.');
             delete(fig);
             [~, e] = artefact.neighbourhoodEditor(locations, pairs, 'ImagingDomain', [0 0; 0.05 0; 0 0.05; 0.05 0.05], 'Visible', 'off');
             testCase.verifyTrue(isgraphics(e.DomainSurface), 'A flat domain is drawn as an outline.');
             [~, e] = artefact.neighbourhoodEditor(locations, pairs, 'Visible', 'off');
-            testCase.verifyTrue(isempty(e.DomainSurface) && isempty(e.DomainCheck), 'Without a domain there is no surface or checkbox.');
+            testCase.verifyTrue(isempty(e.DomainSurface) && isempty(e.DomainCheck) && isempty(e.OpacitySlider), ...
+                'Without a domain there is no surface, checkbox or opacity slider.');
+            testCase.verifyTrue(isgraphics(e.AzimuthSlider) && isgraphics(e.ElevationSlider), 'The angle sliders are always present.');
+            testCase.verifyError(@() e.SetDomainOpacity(0.5), 'artefact:neighbourhoodEditor:DomainOpacity');
             before = findall(0, 'Type', 'figure');
             testCase.verifyError(@() artefact.neighbourhoodEditor(locations, pairs, 'ImagingDomain', [1 2 3 4], 'Visible', 'off'), ...
                 'artefact:neighbourhoodEditor:ImagingDomain');

@@ -89,7 +89,7 @@ points = merit.domain.hemisphere('radius', 7e-2, 'resolution', 2.5e-3);
 setWindowSize(fig);
 editor.ChooseAntenna(3);
 editor.ChooseChannel(find(pairs(:, 1) == 1 & pairs(:, 2) == 3));
-callouts(fig, {[.045 .88], [.2185 .935], [.58 .935], [.58 .655], [.58 .4], [.58 .03]});
+callouts(fig, {[.045 .88], [.2185 .935], [.58 .935], [.58 .655], [.58 .4], [.58 .03], [.04 .083]});
 saveFigure(fig, file);
 end
 
@@ -169,7 +169,7 @@ end
 
 function highlight(ax, P, a, neighbours)
 for n = neighbours
-    plot(ax, P([a n], 1), P([a n], 2), '--', 'Color', [0 .45 .74], 'LineWidth', 1.2);
+    plot(ax, P([a n], 1), P([a n], 2), '-', 'Color', [0 .45 .74], 'LineWidth', 2);
 end
 scatter(ax, P(neighbours, 1), P(neighbours, 2), 70, [0 .45 .74], 'filled', 'MarkerEdgeColor', 'k');
 scatter(ax, P(a, 1), P(a, 2), 90, [.85 0 0], 'filled', 'MarkerEdgeColor', 'k');

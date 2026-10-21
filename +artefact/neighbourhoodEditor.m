@@ -22,8 +22,13 @@ function [fig, editor] = neighbourhoodEditor(locations, channelPairs, varargin)
 %   has the smallest z, such as the Galway array, is drawn with that ring
 %   at the top; 'up'), ImagingDomain (P-by-3 or P-by-2 imaging points in
 %   CoordinateUnits, such as the points from merit.domain.hemisphere; their
-%   convex hull is drawn as a transparent surface that a checkbox shows or
-%   hides), Title, Visible,
+%   convex hull is drawn as a lit, transparent surface with its rim, its
+%   cross-sections at the heights of the antennas and further cross-sections
+%   midway between them, which a checkbox shows or hides), DomainOpacity
+%   (default 0.25), ViewAngle ([azimuth elevation] in degrees for the 3-D
+%   view; default MATLAB's 3-D view, [-37.5 30]). Sliders below the view
+%   adjust the domain opacity, the azimuth and the elevation,
+%   Title, Visible,
 %   Wait. Lengths typed into the figure use DisplayCoordinateUnits; lengths
 %   given to EDITOR functions use CoordinateUnits.
 %   EDITOR provides GetResult, GetNeighbours, GetReferences, SetNeighbours,
@@ -50,6 +55,7 @@ addParameter(p,'Rule','receiver'); addParameter(p,'IncludeSelf',false); addParam
 addParameter(p,'CoordinateUnits','m'); addParameter(p,'DisplayCoordinateUnits','');
 addParameter(p,'Title',''); addParameter(p,'Visible','on'); addParameter(p,'Wait',false);
 addParameter(p,'ZDirection','down'); addParameter(p,'ImagingDomain',[]);
+addParameter(p,'DomainOpacity',.25); addParameter(p,'ViewAngle',[-37.5 30]);
 parse(p,varargin{:}); o=p.Results;
 
 coordUnits=unitText(o.CoordinateUnits,'CoordinateUnits');
@@ -117,6 +123,15 @@ if ~isempty(domainPoints)
     domainPoints=double(domainPoints);
     if size(domainPoints,2)==2, domainPoints(:,3)=0; end
 end
+domainOpacity=o.DomainOpacity;
+if ~(isnumeric(domainOpacity)&&isreal(domainOpacity)&&isscalar(domainOpacity)&&domainOpacity>=0&&domainOpacity<=1)
+    error('artefact:neighbourhoodEditor:DomainOpacity','DomainOpacity must be a number between 0 and 1.');
+end
+viewAngle=o.ViewAngle;
+if ~(isnumeric(viewAngle)&&isreal(viewAngle)&&numel(viewAngle)==2&&all(isfinite(viewAngle(:))))
+    error('artefact:neighbourhoodEditor:ViewAngle','ViewAngle must be [azimuth elevation] in degrees.');
+end
+viewAngle=double(viewAngle(:)).';
 rule=o.Rule; includeSelf=o.IncludeSelf;
 % Validate neighbourhoods and reference options before graphics.
 [references,refInfo]=artefact.referenceChannels(neighbours,channelPairs,'Rule',rule,'IncludeSelf',includeSelf);
@@ -133,20 +148,21 @@ fig=figure('Visible',visible,'Name','Antenna neighbourhoods','NumberTitle','off'
 ax=axes('Parent',fig,'Units','normalized','Position',[.06 .15 .5 .74]);
 hold(ax,'on'); grid(ax,'on'); set(ax,'DataAspectRatio',[1 1 1]);
 if strcmp(zDirection,'down'), set(ax,'ZDir','reverse'); end
-domainSurface=gobjects(0);
+domainSurface=gobjects(0); domainLines=gobjects(0); domainLight=gobjects(0);
 if ~isempty(domainPoints)
-    domainSurface=drawDomain(ax,domainPoints*factor);
+    [domainSurface,domainLines]=drawDomain(ax,domainPoints*factor,locations(:,3)*factor,domainOpacity);
 end
 xlabel(ax,['x (' displayUnits ')']); ylabel(ax,['y (' displayUnits ')']); zlabel(ax,['z (' displayUnits ')']);
 referenceLines=plot3(ax,NaN,NaN,NaN,'-','Color',[.93 .6 .1],'LineWidth',1.5,'HitTest','off');
-neighbourLines=plot3(ax,NaN,NaN,NaN,'--','Color',[0 .45 .74],'LineWidth',1.2,'HitTest','off');
+neighbourLines=plot3(ax,NaN,NaN,NaN,'-','Color',[0 .45 .74],'LineWidth',2,'HitTest','off');
 channelLine=plot3(ax,NaN,NaN,NaN,'-','Color',[.85 0 0],'LineWidth',3,'HitTest','off');
 markers=scatter3(ax,P(:,1),P(:,2),P(:,3),110,repmat([.6 .6 .6],N,1),'filled', ...
     'MarkerEdgeColor','k','ButtonDownFcn',@onClick);
 offset=0.03*extent;
 labelHandles=text(ax,P(:,1)+offset,P(:,2)+offset,P(:,3)+offset,labels,'FontSize',9,'HitTest','off');
 set(ax,'ButtonDownFcn',@onClick);
-view(ax,3);
+view(ax,viewAngle);
+if ~isempty(domainSurface), domainLight=camlight(ax,'headlight'); end
 pad=0.08*extent;
 shown=P; if ~isempty(domainPoints), shown=[P; domainPoints*factor]; end
 lo=min(shown,[],1)-pad; hi=max(shown,[],1)+pad;
@@ -160,12 +176,28 @@ rotateToggle=uicontrol(fig,'Style','togglebutton','String','Rotate','Units','nor
 editToggle=uicontrol(fig,'Style','togglebutton','String','Edit neighbours','Units','normalized', ...
     'Position',[.33 .932 .12 .035],'Callback',@onEditToggle);
 statusText=uicontrol(fig,'Style','text','String','','Units','normalized', ...
-    'Position',[.06 .02 .5 .07],'HorizontalAlignment','left');
+    'Position',[.06 .01 .5 .065],'HorizontalAlignment','left');
 domainCheck=gobjects(0);
 if ~isempty(domainSurface)
     domainCheck=uicontrol(fig,'Style','checkbox','String','Show imaging domain','Value',1,'Units','normalized', ...
         'Position',[.465 .932 .1 .035],'Callback',@onDomainCheck);
 end
+opacitySlider=gobjects(0); opacityText=gobjects(0);
+if ~isempty(domainSurface)
+    uiLabel(fig,'Domain opacity',[.06 .085 .075 .025]);
+    opacitySlider=uicontrol(fig,'Style','slider','Min',0,'Max',1,'Value',domainOpacity,'SliderStep',[.05 .2], ...
+        'Units','normalized','Position',[.135 .088 .07 .022],'Callback',@onOpacitySlider);
+    opacityText=uiLabel(fig,sprintf('%.2f',domainOpacity),[.207 .085 .03 .025]);
+end
+uiLabel(fig,'Azimuth',[.245 .085 .045 .025]);
+azimuthSlider=uicontrol(fig,'Style','slider','Min',-180,'Max',180,'Value',wrapAngle(viewAngle(1)), ...
+    'SliderStep',[1 15]/360,'Units','normalized','Position',[.29 .088 .08 .022],'Callback',@onAngleSlider);
+azimuthText=uiLabel(fig,'',[.372 .085 .035 .025]);
+uiLabel(fig,'Elevation',[.41 .085 .05 .025]);
+elevationSlider=uicontrol(fig,'Style','slider','Min',-90,'Max',90,'Value',max(-90,min(90,viewAngle(2))), ...
+    'SliderStep',[1 15]/180,'Units','normalized','Position',[.46 .088 .07 .022],'Callback',@onAngleSlider);
+elevationText=uiLabel(fig,'',[.532 .085 .03 .025]);
+syncAngle();
 
 x0=.6; w=.37;
 uicontrol(fig,'Style','text','String','Antennas (choose one to see its neighbours)','Units','normalized', ...
@@ -206,12 +238,14 @@ uicontrol(fig,'Style','pushbutton','String','Done','Units','normalized','Positio
     'Callback',@onDone);
 
 editor=struct('Figure',fig,'Axes',ax,'Markers',markers,'Labels',labelHandles,'AntennaList',antennaList, ...
-    'DomainSurface',domainSurface,'DomainCheck',domainCheck, ...
+    'DomainSurface',domainSurface,'DomainLines',domainLines,'DomainCheck',domainCheck, ...
+    'OpacitySlider',opacitySlider,'AzimuthSlider',azimuthSlider,'ElevationSlider',elevationSlider, ...
     'ChannelList',channelList,'Status',statusText, ...
     'GetResult',@GetResult,'GetNeighbours',@GetNeighbours,'GetReferences',@GetReferences, ...
     'SetNeighbours',@SetNeighbours,'ChooseAntenna',@ChooseAntenna,'ChooseChannel',@ChooseChannel, ...
     'ClickAt',@ClickAt,'SetEditMode',@SetEditMode,'ApplyMethod',@ApplyMethod, ...
-    'SetReferenceOptions',@SetReferenceOptions,'Save',@Save);
+    'SetReferenceOptions',@SetReferenceOptions,'SetView',@SetView,'SetDomainOpacity',@SetDomainOpacity, ...
+    'Save',@Save);
 onMethod();
 refresh('Choose an antenna to see its neighbours; switch on Edit neighbours to change them.');
 if waitForDone
@@ -317,6 +351,29 @@ end
         target=unique(double(target(:)).');
         updated=neighbours; updated(target)=found(target);
         commit(updated,sprintf('Method %s applied to %d antennas (%s)',lower(char(method)),numel(target),describe(rest)));
+    end
+
+    function SetView(azimuth,elevation)
+        % SetView(AZIMUTH, ELEVATION) sets the view angle in degrees.
+        if ~(isnumeric(azimuth)&&isscalar(azimuth)&&isfinite(azimuth)&&isnumeric(elevation)&&isscalar(elevation) ...
+                &&isfinite(elevation)&&abs(elevation)<=90)
+            error('artefact:neighbourhoodEditor:ViewAngle','The azimuth must be finite and the elevation between -90 and 90 degrees.');
+        end
+        view(ax,double(azimuth),double(elevation));
+        syncAngle(); moveLight();
+    end
+
+    function SetDomainOpacity(opacity)
+        % SetDomainOpacity(OPACITY) sets the opacity of the imaging-domain surface.
+        if isempty(domainSurface)
+            error('artefact:neighbourhoodEditor:DomainOpacity','No imaging domain is shown.');
+        end
+        if ~(isnumeric(opacity)&&isscalar(opacity)&&opacity>=0&&opacity<=1)
+            error('artefact:neighbourhoodEditor:DomainOpacity','DomainOpacity must be a number between 0 and 1.');
+        end
+        set(domainSurface,'FaceAlpha',double(opacity));
+        set(opacitySlider,'Value',double(opacity));
+        set(opacityText,'String',sprintf('%.2f',opacity));
     end
 
     function SetReferenceOptions(varargin)
@@ -463,19 +520,47 @@ end
 
     function onView(~,~)
         switch get(viewPopup,'Value')
-            case 1, view(ax,3);
+            case 1, view(ax,viewAngle);
             case 2, view(ax,0,90);
             case 3, view(ax,0,0);
             case 4, view(ax,90,0);
         end
+        moveLight(); syncAngle();
+    end
+
+    function onOpacitySlider(~,~)
+        uiAction(@()SetDomainOpacity(get(opacitySlider,'Value')));
+    end
+
+    function onAngleSlider(~,~)
+        uiAction(@()SetView(get(azimuthSlider,'Value'),get(elevationSlider,'Value')));
+    end
+
+    function syncAngle()
+        % Show the current view angle on the sliders.
+        current=get(ax,'View');
+        azimuth=wrapAngle(current(1)); elevation=max(-90,min(90,current(2)));
+        set(azimuthSlider,'Value',azimuth); set(azimuthText,'String',sprintf('%.0f',azimuth));
+        set(elevationSlider,'Value',elevation); set(elevationText,'String',sprintf('%.0f',elevation));
+    end
+
+    function moveLight()
+        % Keep the light at the camera, so that the domain stays lit from the viewer's side.
+        if ~isempty(domainLight)&&isgraphics(domainLight), camlight(domainLight,'headlight'); end
+    end
+
+    function afterRotation()
+        moveLight(); syncAngle();
     end
 
     function onDomainCheck(~,~)
-        set(domainSurface,'Visible',ternary(get(domainCheck,'Value')==1,'on','off'));
+        set([domainSurface; domainLines(:)],'Visible',ternary(get(domainCheck,'Value')==1,'on','off'));
     end
 
     function onRotate(~,~)
         if get(rotateToggle,'Value')==1
+            rotation=rotate3d(fig);
+            set(rotation,'ActionPostCallback',@(~,~)afterRotation());
             rotate3d(fig,'on');
             set(statusText,'String','Rotation is on; switch it off to click antennas.');
         else
@@ -533,19 +618,88 @@ end
     end
 end
 
-function surface=drawDomain(ax,points)
-% Transparent convex hull of the imaging points; a flat domain is drawn as
-% its outline in its plane. The surface ignores clicks.
-style={'FaceColor',[.3 .6 .9],'FaceAlpha',.12,'EdgeColor','none','HitTest','off','PickableParts','none'};
+function [surface,lines]=drawDomain(ax,points,antennaHeights,opacity)
+% Lit, transparent convex hull of the imaging points, with its rim (the
+% outline at the smallest z) and its cross-sections at the antenna heights.
+% A flat domain is drawn as a filled outline in its plane. Nothing drawn
+% here responds to clicks.
+colour=[.3 .6 .9]; lineColour=[.15 .35 .65];
+style={'FaceColor',colour,'FaceAlpha',opacity,'EdgeColor','none','HitTest','off','PickableParts','none', ...
+    'FaceLighting','gouraud','AmbientStrength',.5,'DiffuseStrength',.6,'SpecularStrength',.1};
+lineStyle={'HitTest','off','PickableParts','none','Color',lineColour};
+lines=gobjects(0,1);
 spread=max(points,[],1)-min(points,[],1);
-if spread(3)<=1e-9*max(spread)
+tolerance=1e-9*max(spread);
+if spread(3)<=tolerance
     k=convhull(points(:,1),points(:,2));
-    surface=patch(ax,points(k,1),points(k,2),points(k,3),[.3 .6 .9],style{:});
-else
-    faces=convhull(points(:,1),points(:,2),points(:,3));
-    [used,~,index]=unique(faces);
-    surface=patch(ax,'Faces',reshape(index,size(faces)),'Vertices',points(used,:),style{:});
+    surface=patch(ax,points(k,1),points(k,2),points(k,3),colour,style{:});
+    return;
 end
+faces=convhull(points(:,1),points(:,2),points(:,3));
+[used,~,index]=unique(faces);
+vertices=points(used,:); faces=reshape(index,size(faces));
+surface=patch(ax,'Faces',faces,'Vertices',vertices,style{:});
+% Rim: the outline of the points at the smallest z, if they span an area.
+bottom=points(points(:,3)<=min(points(:,3))+tolerance,:);
+outline=planeOutline(bottom(:,1:2));
+if ~isempty(outline)
+    lines(end+1,1)=plot3(ax,outline(:,1),outline(:,2),repmat(bottom(1,3),size(outline,1),1),'-','LineWidth',1.2, ...
+        'Tag','rim',lineStyle{:});
+end
+% Cross-sections at the distinct antenna heights inside the domain, for
+% arrays arranged in a few horizontal rings.
+heights=uniqueWithin(antennaHeights,1e-6*max(spread));
+heights=heights(heights>min(points(:,3))+tolerance&heights<max(points(:,3))-tolerance);
+if ~isempty(heights)&&numel(heights)<=10
+    % Further cross-sections midway between the rim and the first height
+    % and between consecutive heights.
+    levels=[min(points(:,3)); heights(:)];
+    middles=(levels(1:end-1)+levels(2:end))/2;
+    edges=[faces(:,[1 2]); faces(:,[2 3]); faces(:,[3 1])];
+    za=vertices(edges(:,1),3); zb=vertices(edges(:,2),3);
+    cuts=[heights(:); middles(:)];
+    kinds=[repmat({'antenna height'},numel(heights),1); repmat({'between'},numel(middles),1)];
+    for c=1:numel(cuts)
+        h=cuts(c);
+        crossing=(za-h).*(zb-h)<=0&za~=zb;
+        s=(h-za(crossing))./(zb(crossing)-za(crossing));
+        cut=vertices(edges(crossing,1),1:2)+s.*(vertices(edges(crossing,2),1:2)-vertices(edges(crossing,1),1:2));
+        outline=planeOutline(cut);
+        if isempty(outline), continue; end
+        if strcmp(kinds{c},'antenna height')
+            style={'LineWidth',1,'Color',lineColour};
+        else
+            style={'LineWidth',.75,'Color',[.45 .6 .8]};
+        end
+        lines(end+1,1)=plot3(ax,outline(:,1),outline(:,2),repmat(h,size(outline,1),1),':', ...
+            'HitTest','off','PickableParts','none','Tag',kinds{c},style{:}); %#ok<AGROW>
+    end
+end
+end
+
+function angle=wrapAngle(angle)
+% Azimuth in the range from -180 to 180 degrees.
+angle=mod(angle+180,360)-180;
+end
+
+function outline=planeOutline(xy)
+% Closed convex outline of points in a plane, or empty if they span no area.
+outline=[];
+if size(xy,1)<3, return; end
+try
+    k=convhull(xy(:,1),xy(:,2));
+    outline=xy(k,:);
+catch
+    outline=[];
+end
+end
+
+function values=uniqueWithin(values,tolerance)
+% Distinct values, merging values closer than the tolerance.
+values=sort(values(:));
+if isempty(values), return; end
+keep=[true; diff(values)>tolerance];
+values=values(keep);
 end
 
 function out=ternary(condition,a,b)
