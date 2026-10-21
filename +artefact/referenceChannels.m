@@ -18,7 +18,7 @@ function [references, info] = referenceChannels(neighbours, channelPairs, vararg
 %   (channels with an empty reference) and Missing (C-by-1 cell; element c
 %   lists, as rows [Tx Rx], channels needed for channel c but not measured).
 %   Example:
-%     n = artefact.antennaNeighbours(antenna_locations, channel_names, 'nearest', 'K', 2);
+%     n = artefact.antennaNeighbours(antenna_locations, channel_names);
 %     references = artefact.referenceChannels(n, channel_names);
 
 if nargin<2

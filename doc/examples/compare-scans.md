@@ -18,7 +18,7 @@ Each scan is a 76 x 96 complex array: 76 frequencies from 1.5 to 4.5 GHz and 96 
 ## Open the viewer
 
 ```matlab
-neighbours = artefact.antennaNeighbours(antenna_locations, channel_names, 'nearest', 'K', 2);
+neighbours = artefact.antennaNeighbours(antenna_locations, channel_names);
 references = artefact.referenceChannels(neighbours, channel_names);
 [fig, viewer] = signalvis.signalViewer({scan1, scan2, scan1 - scan2}, frequencies, channel_names, ...
     'DatasetNames', {'Original', 'Rotated', 'Subtracted'}, 'References', references, ...

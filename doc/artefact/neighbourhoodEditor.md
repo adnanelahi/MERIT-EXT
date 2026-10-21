@@ -62,7 +62,7 @@ With `'Wait', true` the call returns after Done is pressed or the figure is clos
 
 ```matlab
 [fig, editor] = artefact.neighbourhoodEditor(locations, pairs, 'Visible', 'off');
-editor.ApplyMethod('nearest', 'K', 4);                 % four nearest for every antenna
+editor.ApplyMethod('distance', 'Distance', 0.09);      % all antennas within 90 mm
 editor.SetNeighbours(1, [2 3 10]);                     % antenna 1 by hand
 editor.SetReferenceOptions('Rule', 'transmitter');
 editor.Save('neighbourhoods.mat');
@@ -133,7 +133,7 @@ The functions perform the operations of the controls and remain usable after the
 | `ChooseChannel(c)` | Show channel *c* and its reference channels. |
 | `ClickAt(viewLine)` | Act as a click along a 2 x 3 view line in display units: choose the nearest antenna, or in edit mode add or remove it. |
 | `SetEditMode(tf)` | Switch edit mode on or off. |
-| `ApplyMethod(method, Name, Value, ...)` | Apply `'nearest'` (`K`) or `'distance'` (`Distance`), with `Antennas` to limit the antennas changed and `MeasuredOnly`. |
+| `ApplyMethod(method, Name, Value, ...)` | Apply `'distance'` (`Distance`) or `'nearest'` (`K`), with `Antennas` to limit the antennas changed and `MeasuredOnly`. |
 | `SetReferenceOptions(Name, Value, ...)` | Set `Rule` and `IncludeSelf`. |
 | `Save(file)` | Save the result as the variable `neighbourhoods` in a MAT-file. |
 

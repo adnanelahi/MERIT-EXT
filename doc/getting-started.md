@@ -61,10 +61,10 @@ viewer.SelectRx([2 3]);
 viewer.SetDisplay('Quantity', 'magnitude', 'MagnitudeScale', 'db');
 ```
 
-Give each antenna a neighbourhood of its two nearest antennas, and derive each channel's reference channels, whose average is subtracted from it in average subtraction:
+Give each antenna a neighbourhood of the antennas within the default distance, here its two adjacent antennas in the same ring, and derive each channel's reference channels, whose average is subtracted from it in average subtraction:
 
 ```matlab
-neighbours = artefact.antennaNeighbours(antenna_locations, channel_names, 'nearest', 'K', 2);
+neighbours = artefact.antennaNeighbours(antenna_locations, channel_names);
 references = artefact.referenceChannels(neighbours, channel_names);
 ```
 
@@ -76,16 +76,14 @@ Each interactive function returns the figure and a structure of functions that a
 
 ## Check the installation
 
-The `verification` folder contains scripted checks that use invisible figures:
+The unit tests are `matlab.unittest` test classes in the packages `signalvis.test` and `artefact.test`. They use invisible figures:
 
 ```matlab
-addpath(fullfile(pwd, 'verification'));
-verify_signal_viewer();
-verify_point_inspector();
-verify_neighbourhoods();
+results = runtests({'signalvis.test', 'artefact.test'});
+table(results)
 ```
 
-Each prints PASS or FAIL for each group of checks and raises an error if any check fails. Mouse interaction cannot be tested by script.
+Every test should pass. Mouse interaction cannot be tested by script.
 
 ## See Also
 

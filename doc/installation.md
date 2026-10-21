@@ -32,7 +32,7 @@ In a terminal, in the parent folder:
 git clone https://github.com/adnanelahi/MERIT-Extensions.git
 ```
 
-This creates the folder `MERIT-Extensions` with the packages `+signalvis` and `+artefact` and the `examples`, `verification` and `doc` folders.
+This creates the folder `MERIT-Extensions` with the packages `+signalvis` and `+artefact`, which include their unit tests, and the `examples` and `doc` folders.
 
 ## 4. Clone MERIT
 
@@ -72,16 +72,14 @@ help artefact
 
 `which` should print a path inside your `MERIT` folder, ending in `+merit\+process\delay.m` (or with `/` on macOS and Linux). `help signalvis` and `help artefact` should list the functions of each package.
 
-Then run the scripted checks, which take a few minutes and draw only invisible figures:
+Then run the unit tests, which take a few minutes and draw only invisible figures:
 
 ```matlab
-addpath(fullfile(pwd, 'verification'));
-verify_signal_viewer();
-verify_point_inspector();
-verify_neighbourhoods();
+results = runtests({'signalvis.test', 'artefact.test'});
+table(results)
 ```
 
-Each check prints a line beginning `PASS:` or `FAIL:`. A function that finishes without an error means that all its checks passed; any failure ends with an error message.
+The table lists each test with `Passed`, `Failed` and `Incomplete`; all 35 tests should pass. The tests are `matlab.unittest` test classes, as in MERIT, in the packages `signalvis.test` and `artefact.test`.
 
 ## 7. Run the first examples
 

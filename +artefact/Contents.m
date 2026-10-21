@@ -13,6 +13,8 @@
 % from each channel the average of its reference channels.
 % These functions use base MATLAB only.
 %
+% Tests: runtests('artefact.test'), matlab.unittest test classes in +artefact/+test.
+%
 % Documentation: doc/README.md in the MERIT-Extensions folder.
 %
 % See also signalvis

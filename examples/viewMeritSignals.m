@@ -13,8 +13,8 @@ scan2=dlmread(fullfile(dataRoot,'B0_P3_p036.csv'));
 
 % Three datasets with the same 96 channels: original, rotated and
 % rotation-subtracted scans. Each channel's reference channels (from the
-% two nearest antennas, receiver rule) can be shown with it.
-neighbours=artefact.antennaNeighbours(antenna_locations,channel_names,'nearest','K',2);
+% default neighbourhoods, receiver rule) can be shown with it.
+neighbours=artefact.antennaNeighbours(antenna_locations,channel_names);
 references=artefact.referenceChannels(neighbours,channel_names);
 [fig,viewer]=signalvis.signalViewer({scan1,scan2,scan1-scan2},frequencies,channel_names, ...
     'DatasetNames',{'Original','Rotated','Subtracted'},'References',references, ...

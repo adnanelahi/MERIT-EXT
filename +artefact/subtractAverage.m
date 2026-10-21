@@ -14,7 +14,7 @@ function [cleaned, info] = subtractAverage(signals, references, varargin)
 %   [CLEANED, INFO] = ... also returns INFO.NoReference, the channels
 %   without reference channels.
 %   Example:
-%     n = artefact.antennaNeighbours(antenna_locations, channel_names, 'nearest', 'K', 4);
+%     n = artefact.antennaNeighbours(antenna_locations, channel_names, 'Distance', 0.09);
 %     references = artefact.referenceChannels(n, channel_names);
 %     cleaned = artefact.subtractAverage(scan, references);
 

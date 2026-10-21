@@ -10,9 +10,10 @@ channel_names=dlmread(fullfile(dataRoot,'channel_names.csv'));
 scan1=dlmread(fullfile(dataRoot,'B0_P3_p000.csv'));
 frequencies=dlmread(fullfile(dataRoot,'frequencies.csv'));
 
-% Each antenna's neighbourhood: its two nearest antennas among those with a
-% measured channel to it (on this array, the adjacent antennas in its ring).
-neighbours=artefact.antennaNeighbours(antenna_locations,channel_names,'nearest','K',2);
+% Each antenna's neighbourhood: the antennas within the default distance
+% among those with a measured channel to it (on this array, the adjacent
+% antennas in its ring).
+neighbours=artefact.antennaNeighbours(antenna_locations,channel_names);
 % Reference channels by the receiver rule: for channel i-j, the channels
 % from i to the neighbours of j; the channel itself is left out.
 references=artefact.referenceChannels(neighbours,channel_names);

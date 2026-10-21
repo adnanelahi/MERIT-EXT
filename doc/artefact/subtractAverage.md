@@ -37,7 +37,7 @@ locations = dlmread(fullfile(dataRoot, 'antenna_locations.csv'));
 pairs = dlmread(fullfile(dataRoot, 'channel_names.csv'));
 scan = dlmread(fullfile(dataRoot, 'B0_P3_p000.csv'));
 
-neighbours = artefact.antennaNeighbours(locations, pairs, 'nearest', 'K', 4);
+neighbours = artefact.antennaNeighbours(locations, pairs, 'Distance', 0.09);
 references = artefact.referenceChannels(neighbours, pairs);
 cleaned = artefact.subtractAverage(scan, references);
 

@@ -32,7 +32,7 @@ With the default neighbourhoods of the Galway array, the neighbours of each ante
 dataRoot = fullfile(fileparts(fileparts(fileparts(which('merit.process.delay')))), 'data');
 locations = dlmread(fullfile(dataRoot, 'antenna_locations.csv'));
 pairs = dlmread(fullfile(dataRoot, 'channel_names.csv'));
-neighbours = artefact.antennaNeighbours(locations, pairs, 'nearest', 'K', 2);
+neighbours = artefact.antennaNeighbours(locations, pairs);
 c = find(pairs(:,1) == 1 & pairs(:,2) == 3);
 
 references = artefact.referenceChannels(neighbours, pairs);

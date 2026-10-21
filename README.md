@@ -7,11 +7,10 @@ MATLAB extensions to the MERIT microwave imaging toolbox, intended for eventual 
 ```text
 MERIT-Extensions/
   README.md
-  +signalvis/       % signal display: signalViewer, inspectPointDelays
-  +artefact/        % artefact removal: antenna neighbourhoods and reference channels
+  +signalvis/       % signal display: signalViewer, inspectPointDelays; unit tests in +signalvis/+test
+  +artefact/        % artefact removal: neighbourhoods, reference channels, average subtraction; unit tests in +artefact/+test
   doc/             % user documentation (Markdown): getting started, reference pages, examples
   examples/        % synthetic and MERIT data usage
-  verification/    % scripted numerical and graphics checks
 ```
 
 ## Documentation
@@ -34,25 +33,23 @@ If a clone of a newer MERIT release is on the path, remove it first; both define
 
 - `signalvis.signalViewer`: an interactive viewer for one or several samples x channels arrays (complex signals, real waveforms, magnitudes in linear or dB, or phases). Signals are chosen by ticking Tx and Rx antennas, single channels, antenna groups and datasets, and shown overlaid or in paged panels. See [signalViewer](doc/signalvis/signalViewer.md).
 - `signalvis.inspectPointDelays`: selects a point on a point map or beamformer image by clicking and compares the original signals with the signals delayed for that point.
-- `artefact.antennaNeighbours`, `artefact.referenceChannels`, `artefact.neighbourhoodEditor`: give each antenna a neighbourhood (k nearest, within a distance, or by hand) and derive each channel's reference channels for later average subtraction.
+- `artefact.antennaNeighbours`, `artefact.referenceChannels`, `artefact.neighbourhoodEditor`: give each antenna a neighbourhood (within a distance, which is the default, the k nearest antennas, or by hand) and derive each channel's reference channels for later average subtraction.
 
 Each function's help text (`help signalvis.signalViewer`) describes its options. The scripts in `examples/` run each function on synthetic data and on the local Galway phantom data; start with `viewMeritSignals.m`.
 
-## Verification
+## Tests
 
-From MATLAB:
+The unit tests are `matlab.unittest` test classes, as in MERIT, in the packages `signalvis.test` (`test_signal_viewer`, `test_point_inspector`) and `artefact.test` (`test_neighbourhoods`). With MERIT-Extensions and MERIT on the path:
 
 ```matlab
-addpath(fullfile(pwd, 'verification'));
-verify_signal_viewer();
-verify_point_inspector();
-verify_neighbourhoods();
+results = runtests({'signalvis.test', 'artefact.test'});
+table(results)
 ```
 
-From PowerShell in this folder, headless (exit code 0 only if all suites pass; give the full path to `matlab.exe` if it is not on the system path):
+From PowerShell in this folder, headless (exit code 0 only if all tests pass; give the full path to `matlab.exe` if it is not on the system path):
 
 ```powershell
-matlab -nosplash -nodesktop -minimize -wait -logfile "$env:TEMP\signalvis-verification.log" -r "addpath(pwd); addpath(fullfile(fileparts(pwd),'MERIT')); addpath('verification'); ok=true; try; verify_signal_viewer(); catch p; disp(getReport(p)); ok=false; end; try; verify_point_inspector(); catch p; disp(getReport(p)); ok=false; end; try; verify_neighbourhoods(); catch p; disp(getReport(p)); ok=false; end; exit(double(~ok))"
+matlab -nosplash -nodesktop -minimize -wait -logfile "$env:TEMP\merit-extensions-tests.log" -r "addpath(pwd); addpath(fullfile(fileparts(pwd),'MERIT')); r=runtests({'signalvis.test','artefact.test'}); disp(table(r)); exit(double(any([r.Failed]|[r.Incomplete])))"
 ```
 
-The suites use invisible figures and report each group as PASS or FAIL. Mouse interaction and visual layout cannot be tested by script and need a manual check.
+The tests read the Galway phantom data supplied with MERIT, from its `data` folder (2019 snapshot) or `example_data` folder (version 1.0 and later). They use invisible figures. Mouse interaction and visual layout cannot be tested by script and need a manual check.

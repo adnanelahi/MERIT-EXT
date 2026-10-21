@@ -9,6 +9,8 @@
 % the transmitting and receiving antenna of each column. inspectPointDelays
 % requires MERIT on the path; signalViewer uses base MATLAB only.
 %
+% Tests: runtests('signalvis.test'), matlab.unittest test classes in +signalvis/+test.
+%
 % Documentation: doc/README.md in the MERIT-Extensions folder.
 %
 % See also artefact
