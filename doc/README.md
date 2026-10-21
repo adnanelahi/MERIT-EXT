@@ -14,6 +14,10 @@ MERIT-Extensions adds tools to the MERIT microwave imaging toolbox. It contains 
 
 - [From Measured Scans to an Image with Average Subtraction](tutorials/average-subtraction-pipeline.md): a complete script, built step by step, that converts a Galway scan to the time domain, removes the artefact by rotation subtraction and by average subtraction, views the signals, beamforms, displays the images and compares them with image metrics.
 
+## Extending
+
+- [Extending MERIT and MERIT-Extensions](extending.md): writing your own beamformers, delay functions, windows and artefact-removal methods, and proposing them for inclusion. Methods to implement are listed in [TODO](../TODO.md).
+
 ## Functions
 
 ### signalvis: signal display

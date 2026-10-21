@@ -15,7 +15,7 @@ MERIT-Extensions/
 
 ## Documentation
 
-The user documentation is in [doc/README.md](doc/README.md): [Getting Started](doc/getting-started.md), one reference page per function and worked examples. In MATLAB, `help signalvis` and `help artefact` list each package's functions.
+The user documentation is in [doc/README.md](doc/README.md): [Getting Started](doc/getting-started.md), one reference page per function and worked examples. In MATLAB, `help signalvis` and `help artefact` list each package's functions. [Extending MERIT and MERIT-Extensions](doc/extending.md) explains where to write new methods and how to propose them for inclusion, and [TODO.md](TODO.md) lists methods to implement.
 
 ## Setup in MATLAB
 
