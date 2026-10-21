@@ -6,7 +6,7 @@ Each section adds one block of code to the script, and the blocks together form 
 
 ## Before you start
 
-- MERIT and MERIT-EXT must be on the MATLAB path, as described in [Install MERIT-EXT and Run a First Example](../installation.md). The function names below are those of the tested MERIT version; the [name table](../merit/README.md#names-in-earlier-versions) lists their names in MERIT 1.0.1.
+- MERIT and MERIT-EXT must be on the MATLAB path, as described in [Getting Started](../getting-started.md). The function names below are those of the tested MERIT version; the [name table](../merit/README.md#names-in-earlier-versions) lists their names in MERIT 1.0.1.
 - The script uses the Galway phantom data supplied with MERIT: phantom B0 with an 11 mm tumour at (15, 0, 35) mm, measured at two positions 36 degrees apart.
 - The two beamforming steps take about half a minute each on a current desktop computer.
 

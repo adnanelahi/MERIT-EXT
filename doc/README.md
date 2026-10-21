@@ -7,8 +7,7 @@ MERIT-EXT adds tools to the MERIT microwave imaging toolbox. It contains two pac
 
 ## Getting started
 
-- [Install MERIT-EXT and Run a First Example](installation.md): cloning MERIT and MERIT-EXT, setting the path, checking the installation and running the first examples.
-- [Getting Started with MERIT-EXT](getting-started.md): requirements, setup, data conventions and a first session.
+- [Getting Started with MERIT-EXT](getting-started.md): requirements, folder layout, cloning MERIT and MERIT-EXT, setting the path, checking the installation, running the examples, data conventions and a first session.
 
 ## Tutorials
 
