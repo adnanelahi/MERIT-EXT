@@ -481,6 +481,7 @@ end
             title(ax,titleText,'Interpreter','none');
         end
         set(statusText,'String',message);
+        drawnow; % Complete the window even if a script continues with a long computation.
     end
 
     function setLine(handle,xyz)

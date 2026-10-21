@@ -506,6 +506,9 @@ redraw('Tick antennas or channels to choose the signals shown.');
             message=sprintf('%s Not shown for this quantity: %s.',message,strjoin(missing,', '));
         end
         set(statusText,'String',message);
+        % Draw now, so that the window is complete even if a script starts a
+        % long computation straight after this call.
+        drawnow;
     end
 
     function drawLine(ax,line,colour,style)

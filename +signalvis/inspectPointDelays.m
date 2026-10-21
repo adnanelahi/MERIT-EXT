@@ -200,6 +200,7 @@ setStatus(selectionStatus(initial,cfg));
 
     function setStatus(message)
         if ~isempty(handles.Status)&&ishghandle(handles.Status), set(handles.Status,'String',message); end
+        drawnow; % Complete the window even if a script continues with a long computation.
     end
 
 end
