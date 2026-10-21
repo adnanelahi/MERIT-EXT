@@ -115,6 +115,28 @@ On the Galway array, adjacent antennas are about 43 mm apart in ring 1, 36.5 mm 
 
 The default distance and `K = 2` give the same neighbourhoods on this array. A distance of 90 mm gives four neighbours in rings 1 and 2 but three in ring 3, whereas `K = 4` gives four everywhere except ring 3, which has only three candidates.
 
+## Neighbours in other rings
+
+The distance between antennas is measured in three dimensions, so `Distance` is the radius of a sphere around each antenna, and the sphere can reach antennas in other rings. On the Galway array these antennas are nevertheless left out, because `MeasuredOnly` admits only antennas that share a measured channel with the antenna, and the Galway data contain no channel between rings. Each ring is measured as a separate set of channels: antennas transmit and receive only within their own ring.
+
+With `'MeasuredOnly', false`, the sphere includes antennas in other rings:
+
+```matlab
+neighbours = artefact.antennaNeighbours(locations, pairs, 'Distance', 0.05, 'MeasuredOnly', false);
+neighbours{3}       % [2 4 12 13]: antennas 12 and 13 lie in ring 2
+```
+
+The reference channels follow from these neighbourhoods. Under the receiver rule, the reference of channel 1-3 would be 1-2, 1-4, 1-12 and 1-13, but channels 1-12 and 1-13 were not measured. [referenceChannels](referenceChannels.md) leaves them out of the reference and lists them in `info.Missing`, so the reference consists of 1-2 and 1-4 only:
+
+```matlab
+c = find(pairs(:, 1) == 1 & pairs(:, 2) == 3);
+[references, info] = artefact.referenceChannels(neighbours, pairs);
+pairs(references{c}, :)     % [1 2; 1 4]
+info.Missing{c}             % [1 12; 1 13]: needed but not measured
+```
+
+Neighbours in other rings are therefore useful only for data that contain channels between those rings, or for monostatic data, in which every antenna has its own channel.
+
 ## Algorithms
 
 - **Distance.** The distance between antennas *i* and *j* is `sqrt(sum((locations(j,:) - locations(i,:)).^2))`.
