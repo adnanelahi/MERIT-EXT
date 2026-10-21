@@ -65,6 +65,16 @@ assert(all([results.passed]), 'verification:Failed', 'Neighbourhood verification
         assert(isequal(n{1}, [2 3 9 10]), 'Within 90 mm: antennas one and two places apart.');
         n = artefact.antennaNeighbours(locations, pairs, 'distance', 'Distance', 0);
         assert(all(cellfun(@isempty, n)));
+        n = artefact.antennaNeighbours(locations, pairs);
+        assert(isequal(n, artefact.antennaNeighbours(locations, pairs, 'distance')), 'The default method is distance.');
+        assert(isequal(n, artefact.antennaNeighbours(locations, pairs, 'nearest', 'K', 2)), ...
+            'The default distance gives every Galway antenna its two adjacent antennas, including ring 3.');
+        assert(isequal(artefact.antennaNeighbours(locations, pairs, 'Distance', 0.09), ...
+            artefact.antennaNeighbours(locations, pairs, 'distance', 'Distance', 0.09)), 'Distance without a method.');
+        [fig, e] = artefact.neighbourhoodEditor(locations, pairs, 'Visible', 'off');
+        result = e.GetResult();
+        delete(fig);
+        assert(isequal(result.Neighbours, n), 'The editor starts with the default distance.');
     end
 
     function candidates()
@@ -161,6 +171,9 @@ assert(all([results.passed]), 'verification:Failed', 'Neighbourhood verification
         list = e.AntennaList;
         set(list, 'Value', 21); callback = get(list, 'Callback'); callback(list, []);
         apply = findobj(fig, 'Style', 'pushbutton', 'String', 'Apply to chosen antenna');
+        methods = findobj(fig, 'Style', 'popupmenu', '-and', '-function', @(h) any(strcmp(get(h, 'String'), 'k nearest antennas')));
+        set(methods, 'Value', find(strcmp(get(methods, 'String'), 'k nearest antennas')));
+        callback = get(methods, 'Callback'); callback(methods, []);
         k = findobj(fig, 'Style', 'edit', 'String', '2');
         set(k, 'String', '3');
         callback = get(apply, 'Callback'); callback(apply, []);

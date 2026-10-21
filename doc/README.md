@@ -43,3 +43,5 @@ The documentation of the MERIT toolbox itself is kept in two folders, one for ea
 ## In MATLAB
 
 `help signalvis` and `help artefact` list the functions of each package. `help signalvis.signalViewer` (or any other function) prints its summary help. The scripts in the `examples` folder run each function on synthetic data and on the Galway phantom data supplied with MERIT.
+
+The figures and window images in `images/` are created by `images/makeFigures.m`; run it with MERIT and MERIT-Extensions on the path to recreate them after a change.

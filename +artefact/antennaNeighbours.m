@@ -1,4 +1,4 @@
-function neighbours = antennaNeighbours(locations, channelPairs, method, varargin)
+function neighbours = antennaNeighbours(locations, channelPairs, varargin)
 %ANTENNANEIGHBOURS Neighbourhood of each antenna from the antenna positions.
 %   NEIGHBOURS = artefact.antennaNeighbours(LOCATIONS, CHANNELPAIRS, METHOD,
 %   Name,Value,...) returns an N-by-1 cell array; element i lists the
@@ -6,9 +6,11 @@ function neighbours = antennaNeighbours(locations, channelPairs, method, varargi
 %   nearest are chosen by distance, ties going to the lower antenna number.
 %   An antenna is never its own neighbour. LOCATIONS is N-by-3 and
 %   CHANNELPAIRS is MERIT's C-by-2 channel_names array (Tx, Rx).
-%   Methods:
-%     'nearest'   the K closest candidates (option K)
-%     'distance'  all candidates within Distance (units of LOCATIONS)
+%   Methods (METHOD may be omitted; the default is 'distance'):
+%     'distance'  all candidates within Distance (units of LOCATIONS); the
+%                 default Distance is 1.2 times the largest distance from
+%                 an antenna to its nearest candidate
+%     'nearest'   the K closest candidates (option K, required)
 %   Options:
 %     Antennas      antennas whose neighbourhoods are computed (default
 %                   all); the others receive an empty neighbourhood
@@ -16,11 +18,19 @@ function neighbours = antennaNeighbours(locations, channelPairs, method, varargi
 %                   antennas sharing a measured channel with i in either
 %                   direction; for monostatic channels (m-m), the antennas
 %                   with their own measured channel. false: all antennas.
-%   Example:
+%   Examples:
+%     neighbours = artefact.antennaNeighbours(antenna_locations, channel_names);
+%     neighbours = artefact.antennaNeighbours(antenna_locations, channel_names, 'Distance', 0.09);
 %     neighbours = artefact.antennaNeighbours(antenna_locations, channel_names, 'nearest', 'K', 2);
 
-if nargin<3
-    error('artefact:antennaNeighbours:NotEnoughInputs','Locations, channel pairs and a method are required.');
+if nargin<2
+    error('artefact:antennaNeighbours:NotEnoughInputs','Locations and channel pairs are required.');
+end
+% An odd number of further arguments means that a method comes first.
+if mod(numel(varargin),2)==1
+    method=varargin{1}; varargin=varargin(2:end);
+else
+    method='distance';
 end
 locations=artefact.internal.validateLocations(locations,'artefact:antennaNeighbours:Locations');
 N=size(locations,1);
@@ -49,6 +59,10 @@ switch method
         end
     case 'distance'
         limit=o.Distance;
+        if isempty(limit)
+            limit=artefact.internal.defaultDistance(locations, ...
+                artefact.internal.candidateNeighbours(channelPairs,N,logical(o.MeasuredOnly)));
+        end
         if ~(isnumeric(limit)&&isreal(limit)&&isscalar(limit)&&isfinite(limit)&&limit>=0)
             error('artefact:antennaNeighbours:Distance','Distance must be a finite nonnegative scalar.');
         end

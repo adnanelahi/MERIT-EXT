@@ -2,8 +2,8 @@ function [fig, editor] = neighbourhoodEditor(locations, channelPairs, varargin)
 %NEIGHBOURHOODEDITOR Show and edit antenna neighbourhoods and reference channels.
 %   [FIG, EDITOR] = artefact.neighbourhoodEditor(LOCATIONS, CHANNELPAIRS, Name,Value,...)
 %   shows the N-by-3 antenna LOCATIONS. Each antenna has a neighbourhood,
-%   formed automatically (k nearest antennas or all antennas within a
-%   distance; see artefact.antennaNeighbours) and editable by hand. From the
+%   formed automatically (all antennas within a distance, or the k nearest
+%   antennas; see artefact.antennaNeighbours) and editable by hand. From the
 %   neighbourhoods follow the reference channels of each channel (see
 %   artefact.referenceChannels). CHANNELPAIRS is MERIT's C-by-2
 %   channel_names array (Tx, Rx).
@@ -11,9 +11,16 @@ function [fig, editor] = neighbourhoodEditor(locations, channelPairs, varargin)
 %   With Edit neighbours on, clicking another antenna adds it to or removes
 %   it from the chosen antenna's neighbourhood. Choose a channel in the
 %   channel list to see its reference channels.
-%   Options: InitialNeighbours, K (initial k, default 2), MeasuredOnly,
+%   Options: InitialNeighbours, Method (initial method, 'distance' (default)
+%   or 'nearest'), Distance (initial distance in CoordinateUnits; default
+%   1.2 times the largest distance from an antenna to its nearest
+%   candidate, rounded to two significant digits in DisplayCoordinateUnits),
+%   K (initial k, default 2), MeasuredOnly,
 %   Rule (receiver or transmitter), IncludeSelf, AntennaLabels,
-%   CoordinateUnits (m, cm, mm), DisplayCoordinateUnits, Title, Visible,
+%   CoordinateUnits (m, cm, mm), DisplayCoordinateUnits, ZDirection ('down'
+%   (default): z increases downwards, so that an array whose widest ring
+%   has the smallest z, such as the Galway array, is drawn with that ring
+%   at the top; 'up'), Title, Visible,
 %   Wait. Lengths typed into the figure use DisplayCoordinateUnits; lengths
 %   given to EDITOR functions use CoordinateUnits.
 %   EDITOR provides GetResult, GetNeighbours, GetReferences, SetNeighbours,
@@ -34,10 +41,12 @@ channelPairs=artefact.internal.validatePairs(channelPairs,N,'artefact:neighbourh
 C=size(channelPairs,1);
 
 p=inputParser; p.FunctionName='artefact.neighbourhoodEditor';
-addParameter(p,'InitialNeighbours',[]); addParameter(p,'K',2); addParameter(p,'MeasuredOnly',true);
+addParameter(p,'InitialNeighbours',[]); addParameter(p,'Method','distance'); addParameter(p,'Distance',[]);
+addParameter(p,'K',2); addParameter(p,'MeasuredOnly',true);
 addParameter(p,'Rule','receiver'); addParameter(p,'IncludeSelf',false); addParameter(p,'AntennaLabels',[]);
 addParameter(p,'CoordinateUnits','m'); addParameter(p,'DisplayCoordinateUnits','');
 addParameter(p,'Title',''); addParameter(p,'Visible','on'); addParameter(p,'Wait',false);
+addParameter(p,'ZDirection','down');
 parse(p,varargin{:}); o=p.Results;
 
 coordUnits=unitText(o.CoordinateUnits,'CoordinateUnits');
@@ -48,6 +57,10 @@ if ~any(strcmp(visible,{'on','off'}))
     error('artefact:neighbourhoodEditor:Visible','Visible must be on or off.');
 end
 titleText=textValue(o.Title,'Title');
+zDirection=lower(textValue(o.ZDirection,'ZDirection'));
+if ~any(strcmp(zDirection,{'down','up'}))
+    error('artefact:neighbourhoodEditor:ZDirection','ZDirection must be down or up.');
+end
 if ~((islogical(o.Wait)||isnumeric(o.Wait))&&isscalar(o.Wait))
     error('artefact:neighbourhoodEditor:Wait','Wait must be true or false.');
 end
@@ -59,6 +72,17 @@ if ~((islogical(o.MeasuredOnly)||isnumeric(o.MeasuredOnly))&&isscalar(o.Measured
     error('artefact:neighbourhoodEditor:MeasuredOnly','MeasuredOnly must be true or false.');
 end
 measuredOnly=logical(o.MeasuredOnly);
+methodNames={'distance','nearest'};
+initialMethod=lower(textValue(o.Method,'Method'));
+if ~any(strcmp(initialMethod,methodNames))
+    error('artefact:neighbourhoodEditor:Method','Method must be distance or nearest.');
+end
+candidates=artefact.internal.candidateNeighbours(channelPairs,N,measuredOnly);
+if isempty(o.Distance)
+    initialDistance=roundTo(artefact.internal.defaultDistance(locations,candidates)*factor)/factor;
+else
+    initialDistance=o.Distance;
+end
 if isempty(o.AntennaLabels)
     labels=arrayfun(@(k)sprintf('%d',k),1:N,'UniformOutput',false);
 elseif isnumeric(o.AntennaLabels)&&numel(o.AntennaLabels)==N
@@ -69,7 +93,11 @@ else
     error('artefact:neighbourhoodEditor:AntennaLabels','AntennaLabels must contain one label per antenna.');
 end
 if isempty(o.InitialNeighbours)
-    neighbours=artefact.antennaNeighbours(locations,channelPairs,'nearest','K',o.K,'MeasuredOnly',measuredOnly);
+    if strcmp(initialMethod,'nearest')
+        neighbours=artefact.antennaNeighbours(locations,channelPairs,'nearest','K',o.K,'MeasuredOnly',measuredOnly);
+    else
+        neighbours=artefact.antennaNeighbours(locations,channelPairs,'distance','Distance',initialDistance,'MeasuredOnly',measuredOnly);
+    end
 else
     neighbours=o.InitialNeighbours;
     if ~(iscell(neighbours)&&numel(neighbours)==N)
@@ -86,19 +114,13 @@ rule=lower(char(rule)); includeSelf=logical(includeSelf);
 currentAntenna=1; currentChannel=0; editMode=false; history={}; waiting=false;
 P=locations*factor;
 extent=max(max(P,[],1)-min(P,[],1)); if extent==0, extent=1; end
-candidates=artefact.internal.candidateNeighbours(channelPairs,N,measuredOnly);
-nearestDistance=zeros(1,N);
-for a=1:N
-    pool=find(candidates(a,:));
-    if isempty(pool), nearestDistance(a)=NaN; else, nearestDistance(a)=min(sqrt(sum((P(pool,:)-P(a,:)).^2,2))); end
-end
-if all(isnan(nearestDistance)), defaultDistance=1; else, defaultDistance=roundTo(1.2*median(nearestDistance(~isnan(nearestDistance)))); end
 
 % ---- Figure ----
 fig=figure('Visible',visible,'Name','Antenna neighbourhoods','NumberTitle','off', ...
     'Units','normalized','Position',[.08 .08 .84 .8]);
 ax=axes('Parent',fig,'Units','normalized','Position',[.06 .15 .5 .74]);
 hold(ax,'on'); grid(ax,'on'); set(ax,'DataAspectRatio',[1 1 1]);
+if strcmp(zDirection,'down'), set(ax,'ZDir','reverse'); end
 xlabel(ax,['x (' displayUnits ')']); ylabel(ax,['y (' displayUnits ')']); zlabel(ax,['z (' displayUnits ')']);
 referenceLines=plot3(ax,NaN,NaN,NaN,'-','Color',[.93 .6 .1],'LineWidth',1.5,'HitTest','off');
 neighbourLines=plot3(ax,NaN,NaN,NaN,'--','Color',[0 .45 .74],'LineWidth',1.2,'HitTest','off');
@@ -130,14 +152,13 @@ antennaList=uicontrol(fig,'Style','listbox','String',{''},'Value',1, ...
     'Units','normalized','Position',[x0 .7 w .235],'Callback',@onAntennaList);
 
 autoPanel=uipanel(fig,'Title','Automatic neighbourhoods','Units','normalized','Position',[x0 .44 w .245]);
-methodNames={'nearest','distance'};
 uiLabel(autoPanel,'Method',[.03 .78 .2 .13]);
-methodPopup=uicontrol(autoPanel,'Style','popupmenu','String',{'k nearest antennas','Within a distance'}, ...
-    'Units','normalized','Position',[.24 .79 .73 .13],'Callback',@onMethod);
+methodPopup=uicontrol(autoPanel,'Style','popupmenu','String',{'Within a distance','k nearest antennas'}, ...
+    'Value',find(strcmp(methodNames,initialMethod)),'Units','normalized','Position',[.24 .79 .73 .13],'Callback',@onMethod);
 uiLabel(autoPanel,'k',[.03 .56 .2 .13]);
 kEdit=uicontrol(autoPanel,'Style','edit','String',sprintf('%d',o.K),'Units','normalized','Position',[.24 .57 .2 .14]);
 uiLabel(autoPanel,['Distance (' displayUnits ')'],[.5 .56 .22 .13]);
-distanceEdit=uicontrol(autoPanel,'Style','edit','String',sprintf('%g',defaultDistance),'Units','normalized','Position',[.75 .57 .22 .14]);
+distanceEdit=uicontrol(autoPanel,'Style','edit','String',sprintf('%g',initialDistance*factor),'Units','normalized','Position',[.75 .57 .22 .14]);
 measuredCheck=uicontrol(autoPanel,'Style','checkbox','String','Only antennas with a measured channel','Value',measuredOnly, ...
     'Units','normalized','Position',[.03 .35 .94 .14]);
 uicontrol(autoPanel,'Style','pushbutton','String','Apply to all antennas','Units','normalized', ...

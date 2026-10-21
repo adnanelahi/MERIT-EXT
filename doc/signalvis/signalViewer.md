@@ -20,14 +20,20 @@ signalvis.signalViewer(___, Name, Value)
 
 `[fig, viewer] = signalvis.signalViewer(___)` also returns the figure and a structure of functions that select signals and change the display from a script.
 
-The figure contains:
+## The window
 
-- **Tx antennas** and **Rx antennas** (left): ticking antennas shows exactly the channels whose Tx and Rx are both ticked.
-- **Channel and its reference channels** (left, with the `References` option): choosing a channel shows it, drawn with a thicker line, together with its reference channels, and ticks their Tx and Rx antennas.
-- **Datasets** (left, when several arrays are supplied): ticking chooses which datasets are drawn; the table also gives each dataset's line style.
-- **Channels** (right): every channel, labelled Tx-Rx; ticking or unticking changes only that channel and leaves the Tx and Rx ticks as they are.
-- **Display controls** (top): quantity, magnitude scale, phase units, phase unwrapping and layout.
-- **Plot** (centre): updated after every change, with a status line below it and, in the individual layout, page controls.
+![The signal viewer showing channel 1-3 with its reference channels 1-2 and 1-4 for the original and rotation-subtracted Galway scans; numbered markers identify the parts of the window](../images/signal-viewer.png)
+
+1. **Tx antennas.** Ticking antennas shows exactly the channels whose Tx and Rx are both ticked. All and None tick or untick every antenna.
+2. **Rx antennas.** As for Tx antennas.
+3. **Channel and its reference channels** (with the `References` option). Choosing a channel shows it, drawn with a thicker line, together with its reference channels, and ticks their Tx and Rx antennas; the text below lists the reference channels.
+4. **Datasets** (when several arrays are supplied). Ticking chooses which datasets are drawn; the table also gives the line style of each dataset.
+5. **Display controls.** Quantity, magnitude scale, phase units, phase unwrapping and layout (overlay or individual panels).
+6. **Plot.** Updated after every change. The legend labels each line with its channel and dataset.
+7. **Status line and page controls.** The status line reports the last change; in the individual layout, Previous and Next turn the pages of panels.
+8. **Channels.** Every channel, labelled Tx-Rx. Ticking or unticking changes only that channel and leaves the Tx and Rx ticks as they are. The line below gives the number of channels and datasets shown.
+
+The image shows the example [Compare Original, Rotated and Rotation-Subtracted Scans](../examples/compare-scans.md) with channel 1-3 and its reference channels chosen, the original and subtracted datasets ticked and the magnitude in dB.
 
 ## Examples
 

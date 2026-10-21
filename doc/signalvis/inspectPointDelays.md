@@ -22,6 +22,18 @@ signalvis.inspectPointDelays(___, Name, Value)
 
 The function requires MERIT on the path, for `merit.process.delay`. It does not beamform; it shows the signals that the beamformer receives for one point.
 
+## The window
+
+![The point inspector with a delay-and-sum image of the plane z = 35 mm and the signals of eight channels before and after the delay for the point of largest value; numbered markers identify the parts of the window](../images/point-inspector.png)
+
+1. **Map.** The points of one z plane, coloured by the image if `Image` is given. Clicking selects the nearest point, which is circled in red; the title gives its index and coordinates.
+2. **Plane menu.** The z plane shown on the map, when the points lie in more than one plane.
+3. **Original signals.** The signals as passed to the function, for the channels shown.
+4. **Delayed signals.** The same signals after the delays for the selected point. With the `Window` option, a third column shows the windowed signals that the beamformer combines.
+5. **Status line.** The selected point and the delay of each channel.
+
+In the individual layout, Previous and Next below the signals turn the pages of channels. The image shows the first example below, with the point of largest image value on the plane z = 35 mm selected.
+
 ## Examples
 
 ### Inspect a MERIT reconstruction

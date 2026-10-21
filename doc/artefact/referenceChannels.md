@@ -18,6 +18,10 @@ references = artefact.referenceChannels(___, Name, Value)
 
 `references = artefact.referenceChannels(___, Name, Value)` chooses the transmitter rule instead, or includes the channel in its own reference.
 
+![Channel 1-3 in red and its reference channels in orange: 1-2 and 1-4 under the receiver rule, 1-2 and 1-10 under the transmitter rule](../images/reference-channels.png)
+
+With the default neighbourhoods of the Galway array, the neighbours of each antenna are its two adjacent antennas. Under the receiver rule (left), the reference of channel 1-3 keeps transmitter 1 and replaces receiver 3 by its neighbours 2 and 4. Under the transmitter rule (right), it consists of the channels from 1 to the neighbours of 1, antennas 2 and 10. Under neither rule is channel 1-3 itself, the signal received at 3, part of its reference.
+
 `[references, info] = artefact.referenceChannels(___)` also reports channels without a reference and reference channels that would be needed but are not measured.
 
 ## Examples
