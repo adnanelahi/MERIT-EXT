@@ -99,7 +99,7 @@ Then the antenna neighbourhoods:
 run(fullfile(parent, 'MERIT-EXT', 'examples', 'meritNeighbourhoods.m'));
 ```
 
-The editor window shows the 24 antennas in three rings, each with the antennas within the default distance, here its two adjacent antennas, as neighbours. Choose an antenna to see its neighbours, press Edit neighbours and click antennas to change them, and choose a channel to see its reference channels. A signal viewer also opens, showing channel 1-3 with its reference channels.
+The editor window shows the 24 antennas in three rings around the imaging domain, a hemisphere of 7 cm radius drawn as a transparent surface, each antenna with the antennas within the default distance, here its two adjacent antennas, as neighbours. Choose an antenna to see its neighbours, press Edit neighbours and click antennas to change them, and choose a channel to see its reference channels. A signal viewer also opens, showing channel 1-3 with its reference channels.
 
 The other examples are `viewSyntheticSignals.m` (real time-domain waveforms, without MERIT data), `inspectMeritImage.m` (signals delayed for a point chosen on a delay-and-sum image) and `inspectSyntheticTime.m` (the same with synthetic data).
 

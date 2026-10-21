@@ -22,7 +22,11 @@ fprintf('Channel 1-3: reference channels %s\n',mat2str(channel_names(references{
 
 % Interactive: choose an antenna to see its neighbours, switch on Edit
 % neighbours to change them, and choose a channel to see its reference.
-[fig,editor]=artefact.neighbourhoodEditor(antenna_locations,channel_names,'DisplayCoordinateUnits','mm');
+% The imaging domain, a hemisphere of 7 cm radius, is drawn as a
+% transparent surface inside the array.
+points=merit.domain.hemisphere('radius',7e-2,'resolution',2.5e-3);
+[fig,editor]=artefact.neighbourhoodEditor(antenna_locations,channel_names, ...
+    'ImagingDomain',points,'DisplayCoordinateUnits','mm');
 
 % After editing: result=editor.GetResult(); result.References{c} lists the
 % reference channels of channel c. Show a channel with its reference
