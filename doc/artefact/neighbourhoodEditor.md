@@ -24,8 +24,8 @@ artefact.neighbourhoodEditor(___, Name, Value)
 
 ![The neighbourhood editor with antenna 3 and channel 1-3 chosen; numbered markers identify the parts of the window](../images/neighbourhood-editor.png)
 
-1. **Antenna view.** The antennas in 3-D, labelled with their numbers. The chosen antenna is red and its neighbours blue; a chosen channel is drawn in red and its reference channels in orange. By default z increases downwards, so that the widest ring of the Galway array is at the top.
-2. **View controls.** The View menu (3-D, top, front and side views), Rotate, and Edit neighbours.
+1. **Antenna view.** The antennas in 3-D, labelled with their numbers. The chosen antenna is red and its neighbours blue; a chosen channel is drawn in red and its reference channels in orange. By default z increases downwards, so that the widest ring of the Galway array is at the top. With the `ImagingDomain` option, the imaging domain is drawn as a transparent surface; the image shows the hemisphere of 7 cm radius used for imaging the Galway data.
+2. **View controls.** The View menu (3-D, top, front and side views), Rotate, Edit neighbours and, with `ImagingDomain`, Show imaging domain.
 3. **Antenna list.** Every antenna with the number of its neighbours and their numbers; choosing one shows its neighbourhood.
 4. **Automatic neighbourhoods.** The method (within a distance or k nearest), its distance or k, the measured-channel restriction and the Apply buttons.
 5. **Reference channels.** The rule, whether a channel is included in its own reference, the channel list with the size of each reference set, and a summary.
@@ -57,6 +57,26 @@ result.References{10}            % reference channels of channel 10
 ```
 
 With `'Wait', true` the call returns after Done is pressed or the figure is closed.
+
+### Start from neighbourhoods defined beforehand
+
+```matlab
+neighbours = artefact.antennaNeighbours(locations, pairs, 'Distance', 0.09);
+[fig, editor] = artefact.neighbourhoodEditor(locations, pairs, 'InitialNeighbours', neighbours, ...
+    'DisplayCoordinateUnits', 'mm');
+```
+
+The editor shows the given neighbourhoods and the reference channels that follow from them, and they can be edited as usual. Any N x 1 cell array of neighbour lists is accepted, for example the `Neighbours` field of a result saved earlier with Save... or `GetResult`. The editor does not accept reference channels directly: it derives them from the neighbourhoods with the `Rule` and `IncludeSelf` options. Without `InitialNeighbours`, it starts from the default distance of [antennaNeighbours](antennaNeighbours.md), or from the method given by `Method`.
+
+### Show the imaging domain
+
+```matlab
+points = merit.domain.hemisphere('radius', 7e-2, 'resolution', 2.5e-3);
+[fig, editor] = artefact.neighbourhoodEditor(locations, pairs, 'ImagingDomain', points, ...
+    'DisplayCoordinateUnits', 'mm');
+```
+
+The points of the imaging domain are drawn as a transparent surface, their convex hull, so that the antennas can be seen in relation to the region that is imaged. The surface does not respond to clicks, and the Show imaging domain checkbox hides it. Give the points in the units of `locations`; with MERIT 1.0.1, create them with `merit.domain.hemisphere(7e-2, resolution=2.5e-3)`.
 
 ### From a script
 
@@ -106,6 +126,7 @@ MERIT's `channel_names`.
 | `AntennaLabels` | N numbers or N text labels | `'1'`, `'2'`, ... | Labels of the antennas. |
 | `CoordinateUnits` | `'m'`, `'cm'`, `'mm'` | `'m'` | Units of `locations` and of distances passed to the `editor` functions. |
 | `DisplayCoordinateUnits` | `'m'`, `'cm'`, `'mm'` | same as `CoordinateUnits` | Units of the axes and of distances typed into the figure. |
+| `ImagingDomain` | P x 3 or P x 2 numeric array | none | Imaging points, in `CoordinateUnits`, such as the points from `merit.domain.hemisphere`. Their convex hull is drawn as a transparent surface; points with a single z value are drawn as a filled outline in their plane. A P x 2 array is placed at z = 0. |
 | `ZDirection` | `'down'`, `'up'` | `'down'` | Direction in which z increases in the antenna view. With `'down'`, an array whose widest ring has the smallest z, such as the Galway array, is drawn with that ring at the top. |
 | `Title` | character vector | describes the current choice | Title of the antenna view. |
 | `Visible` | `'on'`, `'off'` | `'on'` | Figure visibility. |
@@ -143,7 +164,8 @@ The structure also contains the handles `Figure`, `Axes`, `Markers`, `Labels`, `
 
 ## Tips
 
-- **Size of reference sets.** With two neighbours per antenna and the receiver rule, a channel between adjacent antennas has one reference channel, because the transmitter is one of the receiver's two neighbours. Larger neighbourhoods (for example k = 4) give larger reference sets; the summary shows the range.
+- **Shape of the imaging domain.** The domain is drawn as its convex hull, which is exact for convex domains such as a hemisphere. A domain with concave parts appears filled in.
+- **Size of reference sets.** With two neighbours per antenna and the receiver rule, a channel between adjacent antennas has one reference channel, because the transmitter is one of the receiver's two neighbours. Larger neighbourhoods (for example a distance of 90 mm) give larger reference sets; the summary shows the range.
 - **Hand edits are not restricted** to antennas with a measured channel. A neighbour without a measured channel produces no reference channel; the summary and `GetResult().Missing` show where this happens.
 - **Errors from controls** are reported in the status line and leave the neighbourhoods unchanged; the `editor` functions raise errors instead.
 

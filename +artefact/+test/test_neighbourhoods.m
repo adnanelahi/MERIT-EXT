@@ -211,6 +211,33 @@ classdef test_neighbourhoods < matlab.unittest.TestCase
             testCase.verifyTrue(isequal(findall(0, 'Type', 'figure'), before), 'No figure is created for invalid inputs.');
         end
 
+        function imagingDomain(testCase)
+            % Imaging domain drawn as a transparent surface.
+            locations = testCase.Locations;
+            pairs = testCase.Pairs;
+            [x, y, z] = ndgrid(-0.06:0.01:0.06, -0.06:0.01:0.06, 0:0.01:0.06);
+            inside = x.^2 + y.^2 + z.^2 <= 0.06^2;
+            points = [x(inside) y(inside) z(inside)];
+            [fig, e] = artefact.neighbourhoodEditor(locations, pairs, 'ImagingDomain', points, 'Visible', 'off');
+            testCase.verifyTrue(isgraphics(e.DomainSurface) && strcmp(get(e.DomainSurface, 'Visible'), 'on'), 'The domain surface is drawn.');
+            testCase.verifyTrue(strcmp(get(e.DomainSurface, 'HitTest'), 'off'), 'The surface does not take clicks.');
+            vertices = get(e.DomainSurface, 'Vertices');
+            testCase.verifyTrue(all(ismember(vertices, points, 'rows')), 'The surface vertices are imaging points.');
+            set(e.DomainCheck, 'Value', 0); callback = get(e.DomainCheck, 'Callback'); callback(e.DomainCheck, []);
+            testCase.verifyTrue(strcmp(get(e.DomainSurface, 'Visible'), 'off'), 'The checkbox hides the surface.');
+            e.ChooseAntenna(5);
+            testCase.verifyTrue(isequal(e.GetNeighbours(), artefact.antennaNeighbours(locations, pairs)), 'The domain does not change the neighbourhoods.');
+            delete(fig);
+            [~, e] = artefact.neighbourhoodEditor(locations, pairs, 'ImagingDomain', [0 0; 0.05 0; 0 0.05; 0.05 0.05], 'Visible', 'off');
+            testCase.verifyTrue(isgraphics(e.DomainSurface), 'A flat domain is drawn as an outline.');
+            [~, e] = artefact.neighbourhoodEditor(locations, pairs, 'Visible', 'off');
+            testCase.verifyTrue(isempty(e.DomainSurface) && isempty(e.DomainCheck), 'Without a domain there is no surface or checkbox.');
+            before = findall(0, 'Type', 'figure');
+            testCase.verifyError(@() artefact.neighbourhoodEditor(locations, pairs, 'ImagingDomain', [1 2 3 4], 'Visible', 'off'), ...
+                'artefact:neighbourhoodEditor:ImagingDomain');
+            testCase.verifyTrue(isequal(findall(0, 'Type', 'figure'), before), 'No figure is created for an invalid domain.');
+        end
+
         function figuresAndClosing(testCase)
             % Unrelated figures and closing.
             locations = testCase.Locations;

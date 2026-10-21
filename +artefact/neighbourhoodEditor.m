@@ -20,7 +20,10 @@ function [fig, editor] = neighbourhoodEditor(locations, channelPairs, varargin)
 %   CoordinateUnits (m, cm, mm), DisplayCoordinateUnits, ZDirection ('down'
 %   (default): z increases downwards, so that an array whose widest ring
 %   has the smallest z, such as the Galway array, is drawn with that ring
-%   at the top; 'up'), Title, Visible,
+%   at the top; 'up'), ImagingDomain (P-by-3 or P-by-2 imaging points in
+%   CoordinateUnits, such as the points from merit.domain.hemisphere; their
+%   convex hull is drawn as a transparent surface that a checkbox shows or
+%   hides), Title, Visible,
 %   Wait. Lengths typed into the figure use DisplayCoordinateUnits; lengths
 %   given to EDITOR functions use CoordinateUnits.
 %   EDITOR provides GetResult, GetNeighbours, GetReferences, SetNeighbours,
@@ -46,7 +49,7 @@ addParameter(p,'K',2); addParameter(p,'MeasuredOnly',true);
 addParameter(p,'Rule','receiver'); addParameter(p,'IncludeSelf',false); addParameter(p,'AntennaLabels',[]);
 addParameter(p,'CoordinateUnits','m'); addParameter(p,'DisplayCoordinateUnits','');
 addParameter(p,'Title',''); addParameter(p,'Visible','on'); addParameter(p,'Wait',false);
-addParameter(p,'ZDirection','down');
+addParameter(p,'ZDirection','down'); addParameter(p,'ImagingDomain',[]);
 parse(p,varargin{:}); o=p.Results;
 
 coordUnits=unitText(o.CoordinateUnits,'CoordinateUnits');
@@ -105,6 +108,15 @@ else
     end
     neighbours=neighbours(:);
 end
+domainPoints=o.ImagingDomain;
+if ~isempty(domainPoints)
+    if ~(isnumeric(domainPoints)&&isreal(domainPoints)&&ismatrix(domainPoints)&&any(size(domainPoints,2)==[2 3]) ...
+            &&size(domainPoints,1)>=3&&all(isfinite(domainPoints(:))))
+        error('artefact:neighbourhoodEditor:ImagingDomain','ImagingDomain must be a finite real P-by-3 or P-by-2 array of at least three points.');
+    end
+    domainPoints=double(domainPoints);
+    if size(domainPoints,2)==2, domainPoints(:,3)=0; end
+end
 rule=o.Rule; includeSelf=o.IncludeSelf;
 % Validate neighbourhoods and reference options before graphics.
 [references,refInfo]=artefact.referenceChannels(neighbours,channelPairs,'Rule',rule,'IncludeSelf',includeSelf);
@@ -121,6 +133,10 @@ fig=figure('Visible',visible,'Name','Antenna neighbourhoods','NumberTitle','off'
 ax=axes('Parent',fig,'Units','normalized','Position',[.06 .15 .5 .74]);
 hold(ax,'on'); grid(ax,'on'); set(ax,'DataAspectRatio',[1 1 1]);
 if strcmp(zDirection,'down'), set(ax,'ZDir','reverse'); end
+domainSurface=gobjects(0);
+if ~isempty(domainPoints)
+    domainSurface=drawDomain(ax,domainPoints*factor);
+end
 xlabel(ax,['x (' displayUnits ')']); ylabel(ax,['y (' displayUnits ')']); zlabel(ax,['z (' displayUnits ')']);
 referenceLines=plot3(ax,NaN,NaN,NaN,'-','Color',[.93 .6 .1],'LineWidth',1.5,'HitTest','off');
 neighbourLines=plot3(ax,NaN,NaN,NaN,'--','Color',[0 .45 .74],'LineWidth',1.2,'HitTest','off');
@@ -132,7 +148,8 @@ labelHandles=text(ax,P(:,1)+offset,P(:,2)+offset,P(:,3)+offset,labels,'FontSize'
 set(ax,'ButtonDownFcn',@onClick);
 view(ax,3);
 pad=0.08*extent;
-lo=min(P,[],1)-pad; hi=max(P,[],1)+pad;
+shown=P; if ~isempty(domainPoints), shown=[P; domainPoints*factor]; end
+lo=min(shown,[],1)-pad; hi=max(shown,[],1)+pad;
 set(ax,'XLim',[lo(1) hi(1)],'YLim',[lo(2) hi(2)],'ZLim',[lo(3) hi(3)]);
 
 uicontrol(fig,'Style','text','String','View','Units','normalized','Position',[.06 .93 .04 .03],'HorizontalAlignment','left');
@@ -144,6 +161,11 @@ editToggle=uicontrol(fig,'Style','togglebutton','String','Edit neighbours','Unit
     'Position',[.33 .932 .12 .035],'Callback',@onEditToggle);
 statusText=uicontrol(fig,'Style','text','String','','Units','normalized', ...
     'Position',[.06 .02 .5 .07],'HorizontalAlignment','left');
+domainCheck=gobjects(0);
+if ~isempty(domainSurface)
+    domainCheck=uicontrol(fig,'Style','checkbox','String','Show imaging domain','Value',1,'Units','normalized', ...
+        'Position',[.465 .932 .1 .035],'Callback',@onDomainCheck);
+end
 
 x0=.6; w=.37;
 uicontrol(fig,'Style','text','String','Antennas (choose one to see its neighbours)','Units','normalized', ...
@@ -184,6 +206,7 @@ uicontrol(fig,'Style','pushbutton','String','Done','Units','normalized','Positio
     'Callback',@onDone);
 
 editor=struct('Figure',fig,'Axes',ax,'Markers',markers,'Labels',labelHandles,'AntennaList',antennaList, ...
+    'DomainSurface',domainSurface,'DomainCheck',domainCheck, ...
     'ChannelList',channelList,'Status',statusText, ...
     'GetResult',@GetResult,'GetNeighbours',@GetNeighbours,'GetReferences',@GetReferences, ...
     'SetNeighbours',@SetNeighbours,'ChooseAntenna',@ChooseAntenna,'ChooseChannel',@ChooseChannel, ...
@@ -447,6 +470,10 @@ end
         end
     end
 
+    function onDomainCheck(~,~)
+        set(domainSurface,'Visible',ternary(get(domainCheck,'Value')==1,'on','off'));
+    end
+
     function onRotate(~,~)
         if get(rotateToggle,'Value')==1
             rotate3d(fig,'on');
@@ -504,6 +531,21 @@ end
             error('artefact:neighbourhoodEditor:Value','%s must be a number.',name);
         end
     end
+end
+
+function surface=drawDomain(ax,points)
+% Transparent convex hull of the imaging points; a flat domain is drawn as
+% its outline in its plane. The surface ignores clicks.
+style={'FaceColor',[.3 .6 .9],'FaceAlpha',.12,'EdgeColor','none','HitTest','off','PickableParts','none'};
+spread=max(points,[],1)-min(points,[],1);
+if spread(3)<=1e-9*max(spread)
+    k=convhull(points(:,1),points(:,2));
+    surface=patch(ax,points(k,1),points(k,2),points(k,3),[.3 .6 .9],style{:});
+else
+    faces=convhull(points(:,1),points(:,2),points(:,3));
+    [used,~,index]=unique(faces);
+    surface=patch(ax,'Faces',reshape(index,size(faces)),'Vertices',points(used,:),style{:});
+end
 end
 
 function out=ternary(condition,a,b)

@@ -84,7 +84,8 @@ end
 % ---- Window images ----
 
 function editorImage(locations, pairs, file)
-[fig, editor] = artefact.neighbourhoodEditor(locations, pairs, 'DisplayCoordinateUnits', 'mm', 'Visible', 'off');
+points = merit.domain.hemisphere('radius', 7e-2, 'resolution', 2.5e-3);
+[fig, editor] = artefact.neighbourhoodEditor(locations, pairs, 'DisplayCoordinateUnits', 'mm', 'ImagingDomain', points, 'Visible', 'off');
 setWindowSize(fig);
 editor.ChooseAntenna(3);
 editor.ChooseChannel(find(pairs(:, 1) == 1 & pairs(:, 2) == 3));

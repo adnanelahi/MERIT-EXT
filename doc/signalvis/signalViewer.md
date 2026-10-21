@@ -53,6 +53,19 @@ scan2 = dlmread(fullfile(dataRoot, 'B0_P3_p036.csv'));
 
 The figure shows channels 1-2 and 1-3 of all three datasets. Each channel keeps one colour, and the datasets are drawn solid, dashed and dotted.
 
+### Show a channel with its reference channels
+
+```matlab
+locations = dlmread(fullfile(dataRoot, 'antenna_locations.csv'));
+references = artefact.referenceChannels(artefact.antennaNeighbours(locations, pairs), pairs);
+[fig, viewer] = signalvis.signalViewer({scan1, scan1 - scan2}, f, pairs, ...
+    'DatasetNames', {'Original', 'Subtracted'}, 'References', references, ...
+    'AxisUnits', 'Hz', 'DisplayAxisUnits', 'GHz');
+viewer.ShowReference(find(pairs(:,1) == 1 & pairs(:,2) == 3));
+```
+
+With `References`, the window gains the list **Channel and its reference channels**. Choosing channel 1-3 there, or calling `ShowReference`, shows it with a thicker line together with its reference channels 1-2 and 1-4. `References` also accepts the structure returned by the `GetResult` function of [neighbourhoodEditor](../artefact/neighbourhoodEditor.md).
+
 ### Display already converted magnitude and phase
 
 MERIT's getting-started script stores magnitudes in dB and phases already unwrapped. Declare their types so that they are displayed as supplied:
