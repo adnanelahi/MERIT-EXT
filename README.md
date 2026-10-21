@@ -35,7 +35,7 @@ If a clone of a newer MERIT release is on the path, remove it first; both define
 - `signalvis.inspectPointDelays`: selects a point on a point map or beamformer image by clicking and compares the original signals with the signals delayed for that point.
 - `artefact.antennaNeighbours`, `artefact.referenceChannels`, `artefact.neighbourhoodEditor`: give each antenna a neighbourhood (within a distance, which is the default, the k nearest antennas, or by hand) and derive each channel's reference channels for later average subtraction.
 
-Each function's help text (`help signalvis.signalViewer`) describes its options. The scripts in `examples/` run each function on synthetic data and on the local Galway phantom data; start with `viewMeritSignals.m`.
+Each function's help text (`help signalvis.signalViewer`) describes its options. The scripts in `examples/` run each function on synthetic data and on the local Galway phantom data; start with `viewMeritSignals.m`. The tutorial [From Measured Scans to an Image with Average Subtraction](doc/tutorials/average-subtraction-pipeline.md) builds a complete processing script step by step.
 
 ## Tests
 

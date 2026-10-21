@@ -17,6 +17,8 @@ referenceFigure(locations, pairs, fullfile(outputDir, 'reference-channels.png'))
 editorImage(locations, pairs, fullfile(outputDir, 'neighbourhood-editor.png'));
 viewerImage(locations, pairs, frequencies, scan1, scan2, fullfile(outputDir, 'signal-viewer.png'));
 inspectorImage(locations, pairs, frequencies, scan1, scan2, fullfile(outputDir, 'point-inspector.png'));
+tutorialFigure(fullfile(fileparts(outputDir), 'tutorials', 'average-subtraction-pipeline.md'), ...
+    fullfile(outputDir, 'tutorial-slices.png'));
 end
 
 % ---- Explanatory figures ----
@@ -77,6 +79,31 @@ for k = 1:2
     drawChannel(ax, P, pairs(c, :), [.85 0 0], 3);
     labels = arrayfun(@(r) sprintf('%d-%d', pairs(r, :)), references{c}, 'UniformOutput', false);
     title(ax, {titles{k}, ['channel 1-3 (red), references ' strjoin(labels, ', ') ' (orange)']});
+end
+saveFigure(fig, file);
+end
+
+function tutorialFigure(page, file)
+% Slices of the two images of the average-subtraction tutorial, from the
+% code blocks of the tutorial page run in order.
+pageText = fileread(page);
+blocks = regexp(pageText, '```matlab\r?\n(.*?)```', 'tokens');
+script = [tempname '.m'];
+fid = fopen(script, 'w'); fwrite(fid, strjoin(cellfun(@(b) b{1}, blocks, 'UniformOutput', false), sprintf('\n'))); fclose(fid);
+cleanup = onCleanup(@() delete(script));
+before = findall(0, 'Type', 'figure');
+run(script);
+delete(setdiff(findall(0, 'Type', 'figure'), before));
+fig = newFigure([1000 430]);
+slices = {sliceRotation, sliceAverage};
+names = {'Rotation subtraction', 'Average subtraction'};
+for k = 1:2
+    ax = subplot(1, 2, k, 'Parent', fig);
+    imagesc(ax, axes_{1} * 1e3, axes_{2} * 1e3, slices{k}.');
+    axis(ax, 'xy', 'equal', 'tight'); colorbar(ax); hold(ax, 'on');
+    plot(ax, tumour(1) * 1e3, tumour(2) * 1e3, 'w+', 'MarkerSize', 12, 'LineWidth', 2);
+    xlabel(ax, 'x (mm)'); ylabel(ax, 'y (mm)');
+    title(ax, sprintf('%s, z = %.1f mm', names{k}, peakRotation(3) * 1e3));
 end
 saveFigure(fig, file);
 end

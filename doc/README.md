@@ -10,6 +10,10 @@ MERIT-Extensions adds tools to the MERIT microwave imaging toolbox. It contains 
 - [Install MERIT-Extensions and Run a First Example](installation.md): cloning MERIT and MERIT-Extensions, setting the path, checking the installation and running the first examples.
 - [Getting Started with MERIT-Extensions](getting-started.md): requirements, setup, data conventions and a first session.
 
+## Tutorials
+
+- [From Measured Scans to an Image with Average Subtraction](tutorials/average-subtraction-pipeline.md): a complete script, built step by step, that converts a Galway scan to the time domain, removes the artefact by rotation subtraction and by average subtraction, views the signals, beamforms, displays the images and compares them with image metrics.
+
 ## Functions
 
 ### signalvis: signal display
