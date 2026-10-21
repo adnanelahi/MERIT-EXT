@@ -1,13 +1,12 @@
 # MERIT Extensions
 
-MATLAB extensions to the MERIT microwave imaging toolbox, intended for eventual integration into MERIT. The package `signalvis` displays and compares signals; the package `artefact` forms antenna neighbourhoods and reference channels for artefact removal, and will hold the average subtraction. The project is kept outside both downloaded MERIT snapshots so that it can be developed and versioned without modifying third-party files. The interactive signal viewer is specified in [SPECIFICATION.md](SPECIFICATION.md); [BACKGROUND.md](BACKGROUND.md) collects the test environment, MERIT conventions, data geometry and release-specific limitations, and how each function would map onto MERIT.
+MATLAB extensions to the MERIT microwave imaging toolbox, intended for eventual integration into MERIT. The package `signalvis` displays and compares signals; the package `artefact` forms antenna neighbourhoods and reference channels for artefact removal, and will hold the average subtraction. The project is kept outside both downloaded MERIT snapshots so that it can be developed and versioned without modifying third-party files.
 
 ## Layout
 
 ```text
 MERIT-Extensions/
   README.md
-  BACKGROUND.md
   +signalvis/       % signal display: signalViewer, inspectPointDelays
   +artefact/        % artefact removal: antenna neighbourhoods and reference channels
   doc/             % user documentation (Markdown): getting started, reference pages, examples
@@ -33,7 +32,7 @@ If a clone of a newer MERIT release is on the path, remove it first; both define
 
 ## Current functions
 
-- `signalvis.signalViewer`: an interactive viewer for one or several samples x channels arrays (complex signals, real waveforms, magnitudes in linear or dB, or phases). Signals are chosen by ticking Tx and Rx antennas, single channels, antenna groups and datasets, and shown overlaid or in paged panels. See [SPECIFICATION.md](SPECIFICATION.md).
+- `signalvis.signalViewer`: an interactive viewer for one or several samples x channels arrays (complex signals, real waveforms, magnitudes in linear or dB, or phases). Signals are chosen by ticking Tx and Rx antennas, single channels, antenna groups and datasets, and shown overlaid or in paged panels. See [signalViewer](doc/signalvis/signalViewer.md).
 - `signalvis.inspectPointDelays`: selects a point on a point map or beamformer image by clicking and compares the original signals with the signals delayed for that point.
 - `artefact.antennaNeighbours`, `artefact.referenceChannels`, `artefact.neighbourhoodEditor`: give each antenna a neighbourhood (k nearest, within a distance, or by hand) and derive each channel's reference channels for later average subtraction.
 
