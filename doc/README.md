@@ -28,6 +28,13 @@ MERIT-Extensions adds tools to the MERIT microwave imaging toolbox. It contains 
 | [neighbourhoodEditor](artefact/neighbourhoodEditor.md) | Show and edit neighbourhoods and reference channels. |
 | [subtractAverage](artefact/subtractAverage.md) | Remove the artefact by subtracting the average of reference channels. |
 
+## MERIT
+
+The documentation of the MERIT toolbox itself is kept in two folders, one for each version, so that it can later move into MERIT:
+
+- [MERIT 1.0.1](merit/README.md), the current version, which needs MATLAB R2021a or later.
+- [MERIT 2019 snapshot](merit-2019/README.md), commit `03ea497`, which runs on older MATLAB releases and is the version with which MERIT-Extensions is tested.
+
 ## Examples
 
 - [Compare Original, Rotated and Rotation-Subtracted Scans](examples/compare-scans.md)
