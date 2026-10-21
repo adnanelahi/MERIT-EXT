@@ -1,5 +1,5 @@
 % ARTEFACT Early-time artefact removal for MERIT measurements.
-% Part of MERIT-Extensions.
+% Part of MERIT-EXT.
 %
 % Antenna neighbourhoods and reference channels
 %   antennaNeighbours   - Neighbourhood of each antenna from the antenna positions.
@@ -15,6 +15,6 @@
 %
 % Tests: runtests('artefact.test'), matlab.unittest test classes in +artefact/+test.
 %
-% Documentation: doc/README.md in the MERIT-Extensions folder.
+% Documentation: doc/README.md in the MERIT-EXT folder.
 %
 % See also signalvis

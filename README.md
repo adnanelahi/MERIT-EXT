@@ -1,11 +1,11 @@
-# MERIT Extensions
+# MERIT-EXT
 
-MATLAB extensions to the MERIT microwave imaging toolbox, intended for eventual integration into MERIT. The package `signalvis` displays and compares signals; the package `artefact` forms antenna neighbourhoods and reference channels for artefact removal, and will hold the average subtraction. The project is kept outside both downloaded MERIT snapshots so that it can be developed and versioned without modifying third-party files.
+MERIT-EXT (MERIT Extensions) contains MATLAB extensions to the MERIT microwave imaging toolbox, intended for eventual integration into MERIT. The package `signalvis` displays and compares signals; the package `artefact` forms antenna neighbourhoods and reference channels and performs average subtraction. The project is kept in a folder of its own, next to MERIT, so that it can be developed and versioned without modifying third-party files.
 
 ## Layout
 
 ```text
-MERIT-Extensions/
+MERIT-EXT/
   README.md
   +signalvis/       % signal display: signalViewer, inspectPointDelays; unit tests in +signalvis/+test
   +artefact/        % artefact removal: neighbourhoods, reference channels, average subtraction; unit tests in +artefact/+test
@@ -15,19 +15,29 @@ MERIT-Extensions/
 
 ## Documentation
 
-The user documentation is in [doc/README.md](doc/README.md): [Getting Started](doc/getting-started.md), one reference page per function and worked examples. In MATLAB, `help signalvis` and `help artefact` list each package's functions. [Extending MERIT and MERIT-Extensions](doc/extending.md) explains where to write new methods and how to propose them for inclusion, and [TODO.md](TODO.md) lists methods to implement.
+The user documentation is in [doc/README.md](doc/README.md): [Getting Started](doc/getting-started.md), one reference page per function and worked examples. In MATLAB, `help signalvis` and `help artefact` list each package's functions. [Extending MERIT and MERIT-EXT](doc/extending.md) explains where to write new methods and how to propose them for inclusion, and [TODO.md](TODO.md) lists methods to implement.
 
 ## Setup in MATLAB
 
-Set the current folder to `MERIT-Extensions` and add this folder and only the MERIT root folder; with the layout of [doc/installation.md](doc/installation.md):
+Place MERIT, MERIT-EXT and your own code in separate folders under one parent folder, and keep your own scripts and functions out of the MERIT and MERIT-EXT folders:
+
+```text
+<parent>/
+  MERIT/        % MERIT at the tested commit
+  MERIT-EXT/    % this project
+  my-project/   % your own code, or in a subfolder such as projects/my-project
+```
+
+Add only the MERIT and MERIT-EXT root folders to the path:
 
 ```matlab
-addpath(pwd);
-addpath(fullfile(fileparts(pwd), 'MERIT'));   % the MERIT clone at the tested commit; on this machine the sibling folder is MERIT-2019
+parent = 'C:\work\merit';
+addpath(fullfile(parent, 'MERIT'));
+addpath(fullfile(parent, 'MERIT-EXT'));
 which merit.process.delay   % must resolve to your MERIT folder
 ```
 
-If a clone of a newer MERIT release is on the path, remove it first; both define the package `merit`.
+If a clone of a newer MERIT release is on the path, remove it first; both define the package `merit`. [Getting Started](doc/getting-started.md) gives a `setupPaths` script with which a project folder sets the path.
 
 ## Current functions
 
@@ -39,7 +49,7 @@ Each function's help text (`help signalvis.signalViewer`) describes its options.
 
 ## Tests
 
-The unit tests are `matlab.unittest` test classes, as in MERIT, in the packages `signalvis.test` (`test_signal_viewer`, `test_point_inspector`) and `artefact.test` (`test_neighbourhoods`). With MERIT-Extensions and MERIT on the path:
+The unit tests are `matlab.unittest` test classes, as in MERIT, in the packages `signalvis.test` (`test_signal_viewer`, `test_point_inspector`) and `artefact.test` (`test_neighbourhoods`). With MERIT-EXT and MERIT on the path:
 
 ```matlab
 results = runtests({'signalvis.test', 'artefact.test'});
@@ -49,7 +59,7 @@ table(results)
 From PowerShell in this folder, headless (exit code 0 only if all tests pass; give the full path to `matlab.exe` if it is not on the system path):
 
 ```powershell
-matlab -nosplash -nodesktop -minimize -wait -logfile "$env:TEMP\merit-extensions-tests.log" -r "addpath(pwd); addpath(fullfile(fileparts(pwd),'MERIT')); r=runtests({'signalvis.test','artefact.test'}); disp(table(r)); exit(double(any([r.Failed]|[r.Incomplete])))"
+matlab -nosplash -nodesktop -minimize -wait -logfile "$env:TEMP\merit-ext-tests.log" -r "addpath(pwd); addpath(fullfile(fileparts(pwd),'MERIT')); r=runtests({'signalvis.test','artefact.test'}); disp(table(r)); exit(double(any([r.Failed]|[r.Incomplete])))"
 ```
 
 The tests read the Galway phantom data supplied with MERIT, from its `data` folder (2019 snapshot) or `example_data` folder (version 1.0 and later). They use invisible figures. Mouse interaction and visual layout cannot be tested by script and need a manual check.

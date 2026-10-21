@@ -1,25 +1,44 @@
-# Getting Started with MERIT-Extensions
+# Getting Started with MERIT-EXT
 
-MERIT-Extensions is a set of MATLAB packages that extend the MERIT microwave imaging toolbox. `signalvis` displays and compares the signals of antenna channels; `artefact` forms antenna neighbourhoods and reference channels for removing the early-time artefact. The code is intended for eventual integration into MERIT.
+MERIT-EXT is a set of MATLAB packages that extend the MERIT microwave imaging toolbox. `signalvis` displays and compares the signals of antenna channels; `artefact` forms antenna neighbourhoods and reference channels for removing the early-time artefact. The code is intended for eventual integration into MERIT.
 
 ## Requirements
 
 - MATLAB, with no additional toolboxes. `signalvis.signalViewer` and all `artefact` functions use base MATLAB only.
 - MERIT on the MATLAB path, for `signalvis.inspectPointDelays`, which calls `merit.process.delay`, and for the examples, which use the Galway phantom data in MERIT's `data` folder.
 
-**Tested with:** MATLAB R2018a and MERIT commit `03ea497` (4 July 2019). [Install MERIT-Extensions and Run a First Example](installation.md) describes how to obtain both projects and check out that commit.
+**Tested with:** MATLAB R2018a and MERIT commit `03ea497` (4 July 2019). [Install MERIT-EXT and Run a First Example](installation.md) describes how to obtain both projects and check out that commit.
+
+## Folder layout
+
+Keep MERIT, MERIT-EXT and your own code in separate folders under one parent folder. Your own code can lie next to MERIT and MERIT-EXT or in a subfolder of the parent folder:
+
+```text
+<parent>/
+  MERIT/              % MERIT, unchanged
+  MERIT-EXT/          % MERIT-EXT, unchanged
+  my-project/         % your own scripts and functions
+  projects/           % or several projects in a subfolder
+    another-project/
+```
+
+Develop in your own folder and leave the MERIT and MERIT-EXT folders unchanged. They can then be updated with `git pull` without conflicts with your files, and your project can be versioned in a repository of its own. A new function meant for one of the packages, such as an artefact-removal method for `artefact`, is also written in your own folder, as [Extending MERIT and MERIT-EXT](extending.md) describes.
 
 ## Set up the path
 
-In MATLAB, set the current folder to `MERIT-Extensions` and add it and the MERIT folder to the path. With the folder layout of the [installation page](installation.md):
+Save a script `setupPaths.m` in your project folder that adds MERIT, MERIT-EXT and the project itself to the path, starting from the location of the script:
 
 ```matlab
-addpath(pwd);
-addpath(fullfile(fileparts(pwd), 'MERIT'));
+% setupPaths.m: adds MERIT and MERIT-EXT, found next to this project, to the path
+here = fileparts(mfilename('fullpath'));
+parent = fileparts(here);              % fileparts(fileparts(here)) for <parent>/projects/<project>
+addpath(fullfile(parent, 'MERIT'));
+addpath(fullfile(parent, 'MERIT-EXT'));
+addpath(here);
 which merit.process.delay
 ```
 
-The last command should print a path inside the MERIT folder. Add only the two root folders; do not add their subfolders with `genpath`, because package folders (those beginning with `+`) must not be on the path themselves. Only one MERIT folder may be on the path, since every MERIT version defines the package `merit`. Functions are then called with their package name, for example `signalvis.signalViewer` or `artefact.antennaNeighbours`.
+Change the current folder to your project and run `setupPaths` at the start of each session. The last command should print a path inside the MERIT folder. Add only the two root folders; do not add their subfolders with `genpath`, because package folders (those beginning with `+`) must not be on the path themselves. Only one MERIT folder may be on the path, since every MERIT version defines the package `merit`. Functions are then called with their package name, for example `signalvis.signalViewer` or `artefact.antennaNeighbours`.
 
 ## Data conventions
 
@@ -87,4 +106,4 @@ Every test should pass. Mouse interaction cannot be tested by script.
 
 ## See Also
 
-[Install MERIT-Extensions and Run a First Example](installation.md) | [signalViewer](signalvis/signalViewer.md) | [inspectPointDelays](signalvis/inspectPointDelays.md) | [antennaNeighbours](artefact/antennaNeighbours.md) | [referenceChannels](artefact/referenceChannels.md) | [neighbourhoodEditor](artefact/neighbourhoodEditor.md)
+[Install MERIT-EXT and Run a First Example](installation.md) | [signalViewer](signalvis/signalViewer.md) | [inspectPointDelays](signalvis/inspectPointDelays.md) | [antennaNeighbours](artefact/antennaNeighbours.md) | [referenceChannels](artefact/referenceChannels.md) | [neighbourhoodEditor](artefact/neighbourhoodEditor.md)

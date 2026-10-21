@@ -1,38 +1,39 @@
-# Install MERIT-Extensions and Run a First Example
+# Install MERIT-EXT and Run a First Example
 
-This page takes you from an empty folder to a working installation: cloning MERIT and MERIT-Extensions, adding them to the MATLAB path, checking the installation and running the first examples. [Getting Started](getting-started.md) then explains the data conventions and how to use the packages in your own code.
+This page takes you from an empty folder to a working installation: cloning MERIT and MERIT-EXT, adding them to the MATLAB path, checking the installation and running the first examples. [Getting Started](getting-started.md) then explains the data conventions and how to use the packages in your own code.
 
 ## 1. Requirements
 
 - **MATLAB.** No additional toolboxes are needed.
 - **Git**, to clone the repositories (`git --version` in a terminal should print a version number). On Windows, Git for Windows provides it.
-- Access to the MERIT-Extensions repository on GitHub, which is currently private; ask the author for access.
+- Access to the MERIT-EXT repository on GitHub, which is currently private; ask the author for access.
 
 **Tested with:** MATLAB R2018a and MERIT commit `03ea497` (4 July 2019), which step 4 checks out. Later MERIT commits use syntax that requires a newer MATLAB release and have not been tested with these packages.
 
 ## 2. Choose a folder
 
-Create or choose a parent folder for both projects, for example `C:\work\merit` or `~/merit`. The commands below are run in this folder and produce this layout:
+Create or choose a parent folder for MERIT, MERIT-EXT and your own code, for example `C:\work\merit` or `~/merit`. The commands below are run in this folder and produce this layout:
 
 ```text
 <parent>/
-  MERIT-Extensions/   % this project
-  MERIT/              % MERIT, including its data folder
+  MERIT/          % MERIT, including its data folder
+  MERIT-EXT/      % this project
+  my-project/     % your own scripts and functions
 ```
 
-The two folders can also be placed elsewhere: the examples and checks find MERIT, and its example data, through the MATLAB path.
+Keep your own code in a folder of its own, next to MERIT and MERIT-EXT or in a subfolder of the parent folder, for example `<parent>/projects/my-project`, and leave the MERIT and MERIT-EXT folders unchanged. They can then be updated with `git pull` without conflicts with your files, and your project can be versioned in a repository of its own. The examples and checks find MERIT, and its example data, through the MATLAB path, so the folders can also be placed elsewhere.
 
 Avoid a folder that is synchronised by a cloud service such as OneDrive or Dropbox: synchronising a live `.git` folder can corrupt the repository.
 
-## 3. Clone MERIT-Extensions
+## 3. Clone MERIT-EXT
 
 In a terminal, in the parent folder:
 
 ```bash
-git clone https://github.com/adnanelahi/MERIT-Extensions.git
+git clone https://github.com/adnanelahi/MERIT-EXT.git
 ```
 
-This creates the folder `MERIT-Extensions` with the packages `+signalvis` and `+artefact`, which include their unit tests, and the `examples` and `doc` folders.
+This creates the folder `MERIT-EXT` with the packages `+signalvis` and `+artefact`, which include their unit tests, and the `examples` and `doc` folders.
 
 ## 4. Clone MERIT
 
@@ -51,16 +52,17 @@ MERIT is licensed under Apache 2.0. If you use it, cite D. O'Loughlin, M. A. Ela
 
 ## 5. Add the folders to the MATLAB path
 
-Start MATLAB and change the current folder to `MERIT-Extensions`, for example with `cd('C:\work\merit\MERIT-Extensions')`. Then run:
+Start MATLAB and run, with the name of your parent folder:
 
 ```matlab
-addpath(pwd);
-addpath(fullfile(fileparts(pwd), 'MERIT'));
+parent = 'C:\work\merit';
+addpath(fullfile(parent, 'MERIT'));
+addpath(fullfile(parent, 'MERIT-EXT'));
 ```
 
 Add these two root folders only. Do not use `genpath` or the "Add with Subfolders" button: the packages are the folders beginning with `+`, and MATLAB finds them through their parent folder. Every MERIT version defines the package `merit`, so if another MERIT folder is already on the path, remove it first (Home > Set Path, or `rmpath`).
 
-The path lasts until MATLAB is closed. To restore it automatically, put the two `addpath` lines, with full folder names, in a `startup.m` file in your MATLAB user folder (`userpath` shows where it is).
+The path lasts until MATLAB is closed. Step 8 shows how your own project can set it each time it is opened; alternatively, put the `addpath` lines, with full folder names, in a `startup.m` file in your MATLAB user folder (`userpath` shows where it is).
 
 ## 6. Check the installation
 
@@ -86,7 +88,7 @@ The table lists each test with `Passed`, `Failed` and `Incomplete`; all 35 tests
 The `examples` folder contains scripts that run on the Galway data. Start with the signal viewer:
 
 ```matlab
-run(fullfile('examples', 'viewMeritSignals.m'));
+run(fullfile(parent, 'MERIT-EXT', 'examples', 'viewMeritSignals.m'));
 ```
 
 Two windows open. The first compares the original, rotated and rotation-subtracted scans for channels 1-2 and 1-3. Tick other Tx and Rx antennas on the left, or single channels on the right, and change the quantity or layout at the top; the plot follows each change. The second window shows a magnitude in dB and an unwrapped phase that were computed beforehand.
@@ -94,7 +96,7 @@ Two windows open. The first compares the original, rotated and rotation-subtract
 Then the antenna neighbourhoods:
 
 ```matlab
-run(fullfile('examples', 'meritNeighbourhoods.m'));
+run(fullfile(parent, 'MERIT-EXT', 'examples', 'meritNeighbourhoods.m'));
 ```
 
 The editor window shows the 24 antennas in three rings, each with the antennas within the default distance, here its two adjacent antennas, as neighbours. Choose an antenna to see its neighbours, press Edit neighbours and click antennas to change them, and choose a channel to see its reference channels. A signal viewer also opens, showing channel 1-3 with its reference channels.
@@ -103,7 +105,19 @@ The other examples are `viewSyntheticSignals.m` (real time-domain waveforms, wit
 
 ## 8. Use the packages in your own code
 
-With the path set, the functions are called with their package name:
+Create the folder for your own code, for example `<parent>/my-project`, and save in it a script `setupPaths.m` that sets the path from the location of the folder itself, so that it works on any computer with the same layout:
+
+```matlab
+% setupPaths.m: adds MERIT and MERIT-EXT, found next to this project, to the path
+here = fileparts(mfilename('fullpath'));
+parent = fileparts(here);              % fileparts(fileparts(here)) for <parent>/projects/<project>
+addpath(fullfile(parent, 'MERIT'));
+addpath(fullfile(parent, 'MERIT-EXT'));
+addpath(here);
+which merit.process.delay
+```
+
+Each time you work on the project, change the current folder to `my-project` and run `setupPaths`. If the project lies in a subfolder such as `<parent>/projects/my-project`, the parent folder is two levels up, as the comment in the script notes. Your scripts and functions are then kept in `my-project`, and the functions of MERIT and MERIT-EXT are called with their package name:
 
 ```matlab
 dataRoot = fullfile(fileparts(fileparts(fileparts(which('merit.process.delay')))), 'data');
@@ -120,7 +134,7 @@ The first line finds MERIT's `data` folder from the location of `merit.process.d
 
 ## 9. Update
 
-To obtain the latest version of MERIT-Extensions, run in its folder:
+To obtain the latest version of MERIT-EXT, run in its folder:
 
 ```bash
 git pull
@@ -130,7 +144,7 @@ git pull
 
 | Message or symptom | Cause and remedy |
 |---|---|
-| MATLAB reports that `signalvis` or `artefact` is undefined or cannot be resolved | `MERIT-Extensions` is not on the path and is not the current folder; repeat step 5. Add the `MERIT-Extensions` folder itself, not `+signalvis`. |
+| MATLAB reports that `signalvis` or `artefact` is undefined or cannot be resolved | `MERIT-EXT` is not on the path; repeat step 5 or run `setupPaths` (step 8). Add the `MERIT-EXT` folder itself, not `+signalvis`. |
 | `MERIT's merit.process.delay must be on the MATLAB path.` or `Add the MERIT folder to the MATLAB path before running this example.` | MERIT is not on the path; repeat step 5. |
 | `which merit.process.delay` shows a folder other than your `MERIT` folder | Another MERIT folder is on the path; remove it with `rmpath` and add yours. |
 | `Error using dlmread ... could not be opened` | The MERIT folder on the path has no `data` folder with the Galway files; check that it is a complete clone. |

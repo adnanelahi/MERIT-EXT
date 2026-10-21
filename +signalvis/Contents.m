@@ -1,5 +1,5 @@
 % SIGNALVIS Display and comparison of MERIT channel signals.
-% Part of MERIT-Extensions.
+% Part of MERIT-EXT.
 %
 % Interactive tools
 %   signalViewer       - Choose interactively which channel signals to display and compare.
@@ -11,6 +11,6 @@
 %
 % Tests: runtests('signalvis.test'), matlab.unittest test classes in +signalvis/+test.
 %
-% Documentation: doc/README.md in the MERIT-Extensions folder.
+% Documentation: doc/README.md in the MERIT-EXT folder.
 %
 % See also artefact

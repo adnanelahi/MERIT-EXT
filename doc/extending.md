@@ -1,15 +1,27 @@
-# Extending MERIT and MERIT-Extensions
+# Extending MERIT and MERIT-EXT
 
-New methods, such as a beamformer, a delay model or an artefact-removal method, can be developed alongside MERIT and MERIT-Extensions and used with them unchanged, because MERIT passes its building blocks to one another as function handles. This page describes where to put such functions, the interfaces they must follow, and how a finished function is proposed for inclusion in MERIT-Extensions or in MERIT.
+New methods, such as a beamformer, a delay model or an artefact-removal method, can be developed alongside MERIT and MERIT-EXT and used with them unchanged, because MERIT passes its building blocks to one another as function handles. This page describes where to put such functions, the interfaces they must follow, and how a finished function is proposed for inclusion in MERIT-EXT or in MERIT.
 
 ## Where to put the code
 
-Write a new function in the package where it is meant to end up, so that it has its final name from the start and needs no renaming when it is proposed for inclusion: an artefact-removal method in `artefact` of MERIT-Extensions, a beamformer in `merit.beamformer` of MERIT, and so on (see [Proposing a function for inclusion](#proposing-a-function-for-inclusion)). There are two ways to do this.
+Develop in your own project folder, next to MERIT and MERIT-EXT, with the folder layout and the `setupPaths` script described in [Getting Started](getting-started.md#folder-layout), and leave the MERIT and MERIT-EXT folders unchanged.
 
-- **In a branch of the repository (recommended).** Fork the repository on GitHub, clone the fork, create a branch for the method, and add the file to the package folder, for example `+artefact/subtractSubspace.m`, called as `artefact.subtractSubspace`. The branch keeps the work separate from the main version, and the same branch is later used to propose the method for inclusion.
-- **In a folder of your own.** MATLAB merges packages of the same name that lie in different folders on the path. A file `+artefact/subtractSubspace.m` in a folder of your own is therefore also called as `artefact.subtractSubspace`, provided that the folder is on the path together with MERIT-Extensions; in the same way, `+merit/+beamformer/CFDAS.m` in your folder adds `merit.beamformer.CFDAS` to MERIT. This suits a first trial without git, and the file can later be copied into a branch unchanged.
+Write a new function in the package where it is meant to end up, so that it has its final name from the start and needs no renaming when it is proposed for inclusion: an artefact-removal method in `artefact` of MERIT-EXT, a beamformer in `merit.beamformer` of MERIT, and so on. MATLAB merges packages of the same name that lie in different folders on the path, so the package folder is created inside your project:
 
-In both cases, give the function a name that the package does not already use: a file with the name of an existing function would shadow it or be shadowed by it, depending on the order of the folders on the path. `which -all artefact.subtractSubspace` lists every file that defines a name.
+```text
+my-project/
+  setupPaths.m
+  myAnalysis.m              % your scripts
+  +artefact/
+    subtractSubspace.m      % called as artefact.subtractSubspace
+  +merit/
+    +beamformer/
+      CFDAS.m               % called as merit.beamformer.CFDAS
+```
+
+With the project, MERIT and MERIT-EXT on the path, `artefact.subtractSubspace` is called like the functions of MERIT-EXT, and `merit.beamformer.CFDAS` like those of MERIT. When the function is proposed for inclusion, the file is copied unchanged into a branch of a fork of the target repository (see [Proposing a function for inclusion](#proposing-a-function-for-inclusion)).
+
+Give the function a name that the package does not already use: a file with the name of an existing function would shadow it or be shadowed by it, depending on the order of the folders on the path. `which -all artefact.subtractSubspace` lists every file that defines a name.
 
 ## Data layout
 
@@ -102,17 +114,17 @@ An artefact-removal function takes the signals of one scan, samples x channels, 
 
 ## Tests and evaluation
 
-Write the checks as a `matlab.unittest` test class in the package's test folder, as MERIT and MERIT-Extensions do, for example `+artefact/+test/test_subspace.m`, and run them with `runtests('artefact.test')`. Test the function on small synthetic arrays whose correct result is known, as well as on measured data. The [tutorial](tutorials/average-subtraction-pipeline.md) provides a complete pipeline for evaluating a method on the Galway phantom data against rotation subtraction, with the distance of the image maximum from the tumour, the full width at half maximum, the signal-to-clutter and signal-to-mean ratios, and the correlation with the rotation-subtracted image.
+Write the checks as a `matlab.unittest` test class in the package's test folder in your project, as MERIT and MERIT-EXT do, for example `my-project/+artefact/+test/test_subspace.m`, and run them with `runtests('artefact.test')`, which also runs the tests of MERIT-EXT in the merged package. Test the function on small synthetic arrays whose correct result is known, as well as on measured data. The [tutorial](tutorials/average-subtraction-pipeline.md) provides a complete pipeline for evaluating a method on the Galway phantom data against rotation subtraction, with the distance of the image maximum from the tumour, the full width at half maximum, the signal-to-clutter and signal-to-mean ratios, and the correlation with the rotation-subtracted image.
 
 ## Proposing a function for inclusion
 
-A method that works and has been evaluated can be proposed for inclusion in MERIT-Extensions or in MERIT (`https://github.com/EMFMed/MERIT`). MERIT's README welcomes contributions of code and documentation.
+A method that works and has been evaluated can be proposed for inclusion in MERIT-EXT or in MERIT (`https://github.com/EMFMed/MERIT`). MERIT's README welcomes contributions of code and documentation.
 
-1. **Choose the target and its place.** Artefact-removal methods and signal displays belong in the packages `artefact` and `signalvis` of MERIT-Extensions. Beamformers, metrics, delay models and processing functions belong in MERIT. MERIT 1.0.1, on its `master` branch, groups its functions in the packages `+beamformer`, `+domain`, `+metric`, `+process` and `+display`, names functions in lower case with underscores (`get_delay`, `as_3D_scan`) and validates inputs with `arguments` blocks, which need MATLAB R2021a or later; its [documentation](merit/README.md) lists every function and its name in earlier versions.
+1. **Choose the target and its place.** Artefact-removal methods and signal displays belong in the packages `artefact` and `signalvis` of MERIT-EXT. Beamformers, metrics, delay models and processing functions belong in MERIT. MERIT 1.0.1, on its `master` branch, groups its functions in the packages `+beamformer`, `+domain`, `+metric`, `+process` and `+display`, names functions in lower case with underscores (`get_delay`, `as_3D_scan`) and validates inputs with `arguments` blocks, which need MATLAB R2021a or later; its [documentation](merit/README.md) lists every function and its name in earlier versions.
 2. **Adapt the code** to the conventions of the target: name and package, help text that describes the inputs and outputs, input validation, and no hard-coded paths or version names.
-3. **Add tests** in the target's test package: `+merit/+test/+from_list` in MERIT, `+artefact/+test` or `+signalvis/+test` in MERIT-Extensions.
-4. **Add documentation**: a reference page in the format of the pages in this documentation, with syntax, description, examples, arguments and algorithm, and an entry in the package's `Contents.m` for MERIT-Extensions.
-5. **Open a pull request.** Commit the function with its tests and documentation to the branch of your fork (see [Where to put the code](#where-to-put-the-code)) and open a pull request against `master` (MERIT) or `main` (MERIT-Extensions). Describe the method with a reference to its publication, the evaluation results, and any limitation found.
+3. **Add tests** in the target's test package: `+merit/+test/+from_list` in MERIT, `+artefact/+test` or `+signalvis/+test` in MERIT-EXT.
+4. **Add documentation**: a reference page in the format of the pages in this documentation, with syntax, description, examples, arguments and algorithm, and an entry in the package's `Contents.m` for MERIT-EXT.
+5. **Open a pull request.** Fork the target repository on GitHub, clone the fork into a separate folder, create a branch, copy the function with its tests and documentation into the package folders, commit them, and open a pull request against `master` (MERIT) or `main` (MERIT-EXT). While the fork is tested, keep only one copy of the function on the path: remove your project folder from the path or rename its copy. Describe the method with a reference to its publication, the evaluation results, and any limitation found.
 
 MERIT is licensed under Apache 2.0; contributed code is released under the same licence.
 

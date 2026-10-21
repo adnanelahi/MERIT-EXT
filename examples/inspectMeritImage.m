@@ -1,5 +1,5 @@
 %INSPECTMERITIMAGE Inspect MERIT channels before and after beamforming.
-% Add MERIT-Extensions and MERIT to the MATLAB path, then run this file.
+% Add MERIT-EXT and MERIT to the MATLAB path, then run this file.
 % MERIT's example data are in the data folder beside its +merit package.
 delayFile=which('merit.process.delay');
 if isempty(delayFile)

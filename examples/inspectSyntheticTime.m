@@ -1,5 +1,5 @@
 %INSPECTSYNTHETICTIME Deterministic time-domain point-delay inspector example.
-% Add the MERIT-Extensions folder and the MERIT folder to the MATLAB path.
+% Add the MERIT-EXT folder and the MERIT folder to the MATLAB path.
 dt=1e-9;
 sampleAxis=(0:127)';
 t=sampleAxis*dt;

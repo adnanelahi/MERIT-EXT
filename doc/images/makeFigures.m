@@ -1,6 +1,6 @@
 function makeFigures()
 %MAKEFIGURES Create the figures and window images of the documentation.
-%   Run with MERIT and MERIT-Extensions on the path. The images are written
+%   Run with MERIT and MERIT-EXT on the path. The images are written
 %   to the folder of this script and overwrite the existing ones.
 
 outputDir = fileparts(mfilename('fullpath'));

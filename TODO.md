@@ -1,10 +1,10 @@
 # TODO
 
-Methods that would extend MERIT-Extensions and MERIT. [Extending MERIT and MERIT-Extensions](doc/extending.md) describes where new functions are written and how they are proposed for inclusion.
+Methods that would extend MERIT-EXT and MERIT. [Extending MERIT and MERIT-EXT](doc/extending.md) describes where new functions are written and how they are proposed for inclusion.
 
 ## Beamformers to implement
 
-The three beamformers below are to be implemented for MERIT 1.0.1, in the package `+merit/+beamformer`, following the conventions described in [Extending MERIT and MERIT-Extensions](doc/extending.md). Each skeleton gives the function signature, its arguments and the help text that `help` displays; the body is left to the implementer. A beamformer of MERIT is a function that returns a handle, and [merit.beamform](doc/merit/beamform.md) calls the handle with the delayed signals of a block of points, an N x C x P array, and expects one value per point.
+The three beamformers below are to be implemented for MERIT 1.0.1, in the package `+merit/+beamformer`, following the conventions described in [Extending MERIT and MERIT-EXT](doc/extending.md). Each skeleton gives the function signature, its arguments and the help text that `help` displays; the body is left to the implementer. A beamformer of MERIT is a function that returns a handle, and [merit.beamform](doc/merit/beamform.md) calls the handle with the delayed signals of a block of points, an N x C x P array, and expects one value per point.
 
 ### Delay-and-sum weighted by the coherence factor (CF-DAS)
 

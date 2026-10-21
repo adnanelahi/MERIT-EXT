@@ -1,14 +1,14 @@
-# MERIT-Extensions documentation
+# MERIT-EXT documentation
 
-MERIT-Extensions adds tools to the MERIT microwave imaging toolbox. It contains two packages:
+MERIT-EXT adds tools to the MERIT microwave imaging toolbox. It contains two packages:
 
 - `signalvis` displays and compares channel signals.
 - `artefact` forms antenna neighbourhoods and reference channels for removing the early-time artefact.
 
 ## Getting started
 
-- [Install MERIT-Extensions and Run a First Example](installation.md): cloning MERIT and MERIT-Extensions, setting the path, checking the installation and running the first examples.
-- [Getting Started with MERIT-Extensions](getting-started.md): requirements, setup, data conventions and a first session.
+- [Install MERIT-EXT and Run a First Example](installation.md): cloning MERIT and MERIT-EXT, setting the path, checking the installation and running the first examples.
+- [Getting Started with MERIT-EXT](getting-started.md): requirements, setup, data conventions and a first session.
 
 ## Tutorials
 
@@ -16,7 +16,7 @@ MERIT-Extensions adds tools to the MERIT microwave imaging toolbox. It contains 
 
 ## Extending
 
-- [Extending MERIT and MERIT-Extensions](extending.md): writing your own beamformers, delay functions, windows and artefact-removal methods, and proposing them for inclusion. Methods to implement are listed in [TODO](../TODO.md).
+- [Extending MERIT and MERIT-EXT](extending.md): writing your own beamformers, delay functions, windows and artefact-removal methods, and proposing them for inclusion. Methods to implement are listed in [TODO](../TODO.md).
 
 ## Functions
 
@@ -41,7 +41,7 @@ MERIT-Extensions adds tools to the MERIT microwave imaging toolbox. It contains 
 The documentation of the MERIT toolbox itself is kept in two folders, one for each version, so that it can later move into MERIT:
 
 - [MERIT 1.0.1](merit/README.md), the current version, which needs MATLAB R2021a or later.
-- [MERIT 2019 snapshot](merit-2019/README.md), commit `03ea497`, which runs on older MATLAB releases and is the version with which MERIT-Extensions is tested.
+- [MERIT 2019 snapshot](merit-2019/README.md), commit `03ea497`, which runs on older MATLAB releases and is the version with which MERIT-EXT is tested.
 
 ## Examples
 
@@ -52,4 +52,4 @@ The documentation of the MERIT toolbox itself is kept in two folders, one for ea
 
 `help signalvis` and `help artefact` list the functions of each package. `help signalvis.signalViewer` (or any other function) prints its summary help. The scripts in the `examples` folder run each function on synthetic data and on the Galway phantom data supplied with MERIT.
 
-The figures and window images in `images/` are created by `images/makeFigures.m`; run it with MERIT and MERIT-Extensions on the path to recreate them after a change.
+The figures and window images in `images/` are created by `images/makeFigures.m`; run it with MERIT and MERIT-EXT on the path to recreate them after a change.
