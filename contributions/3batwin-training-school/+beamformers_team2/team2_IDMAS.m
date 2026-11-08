@@ -1,4 +1,4 @@
-function [process_signals] = IDMAS(iterations)
+function [process_signals] = team2_IDMAS(iterations)
   % Iterative Delay-Multiply-and-Sum.
   %
   % DMAS can be written as  sum_{i<j} x_i x_j = sum_i x_i * DAS(x_{i+1..N}).

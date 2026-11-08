@@ -1,4 +1,4 @@
-function [process_signals] = GammaDAS(gamma)
+function [process_signals] = team2_GammaDAS(gamma)
   % DAS followed by a Gamma (power-law) transformation.
   %
   % Each pixel of the DAS image is raised to the power gamma. Paper for

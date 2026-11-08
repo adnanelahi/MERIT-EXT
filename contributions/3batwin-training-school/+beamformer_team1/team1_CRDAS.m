@@ -1,4 +1,4 @@
-function [process_signals] = our_CRDAS()
+function [process_signals] = team1_CRDAS()
 
     function [energies] = process_(delayed_signals)
         

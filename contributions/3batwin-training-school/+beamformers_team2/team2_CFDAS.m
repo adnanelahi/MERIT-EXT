@@ -1,4 +1,4 @@
-function process_signals = CFDAS(options)
+function process_signals = team2_CFDAS(options)
 % CFDAS Delay-and-sum beamformer weighted by the coherence factor.
 %   image_ = merit.beamformer.CFDAS() returns a beamformer for merit.beamform
 %   that multiplies the delay-and-sum value of each point by the coherence
